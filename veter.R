@@ -40,5 +40,5 @@ M = dim(u)[2]
 
 # to neki casa traja, po potrebi bom poenostavil in tako pohitril
 # F =(X,Y) je vektorsko polje vetra
-X = NASTAVI_VETER(u,N,M) #zonalni veter (vzhod-zahod)
-Y = NASTAVI_VETER(v,N,M) #meridionalni veter (jug-sever)
+X = 3.6*NASTAVI_VETER(u,N,M) #zonalni veter v km/h (vzhod-zahod)
+Y = 3.6*NASTAVI_VETER(v,N,M) #meridionalni veter v km/h (jug-sever)
