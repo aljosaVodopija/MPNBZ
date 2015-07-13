@@ -212,16 +212,14 @@ points(lon2, lat2, pch=19, col="green", cex = as.numeric(bum2$Freq)/500)
 ##############################################################################
 ######## ZA ALJOŠO ###########
 
-#A = c(13.5-1/90, (45.20+(1/30))-(1.5/120)) 
-#D = c(16.5+1/90, 47+(1.5/120))
+A = c(13.5-1/90, (45.20+(1/30))-(1.5/120)) ## spodnje levo oglišče
+D = c(16.5+1/90, 47+(1.5/120)) ## zgornje desno oglišče
 
-A <- c(13.5, 45.25) ## spodnje levo oglišče
-D <- c(16.5, 47)    ## zgornje desno oglišče
 x <- 1/90
 y <- 1/120
-dim <- c((D[1]-A[1])/x, (D[2]-A[2])/y)
-vsi_x <- (1:dim[1])*x + A[1]
-vsi_y <- (1:dim[2])*y + A[2]
+dim <- c((D[1]-A[1])/x+1, (D[2]-A[2])/y+1)
+vsi_x <- (0:(dim[1]-1))*x + A[1]
+vsi_y <- (0:(dim[2]-1))*y + A[2]
 muhe <- 2500 ## muh na eno žival
 
 ##### Drobnica #######
