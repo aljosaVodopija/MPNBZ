@@ -31,61 +31,62 @@ LAPLACE = function(M){
 return(odvodxx(M,hx)+odvodyy(M,hy))
 }
 
-#Odvod skalarnega polja F po x (Fx), pri tem uporablja sim. dif.
-
-odvodx = function(F,hx){
-
-m = dim(F)[1]
-n = dim(F)[2]
-Fx = matrix(1:(n*m),m)
-
-Fx[,2:(n-1)] = 1/(2*hx)*(F[,3:n]-F[,1:(n-2)])
-Fx[,1] = 1/(2*hx)*(F[,2]-F[,1])
-Fx[,n] = 1/(2*hx)*(F[,n]-F[,(n-1)])
-
-return(Fx)
-}
-
 #Odvod skalarnega polja F po y (Fy), pri tem uporablja sim. dif.
 
-odvody = function(F,hy){
+odvody = function(F,h){
 
-m = dim(F)[1]
-n = dim(F)[2]
-Fy = matrix(1:(n*m),m)
+n = dim(F)[1]
+m = dim(F)[2]
+Fy = matrix(1:(n*m),n)
 
-Fy[2:(m-1),] = 1/(2*hy)*(F[1:(m-2),]-F[3:m,])
-Fy[1,] = 1/(2*hy)*(F[1,]-F[2,])
-Fy[m,] = 1/(2*hy)*(F[(m-1),]-F[m,])
+Fy[,2:(m-1)] = 1/(2*h)*(F[,3:m]-F[,1:(m-2)])
+Fy[,1] = 1/(2*h)*(F[,2]-F[,1])
+Fy[,m] = 1/(2*h)*(F[,m]-F[,(m-1)])
 
 return(Fy)
 }
 
-#Drugi odvod skalrnega polja F po x (Fxx)
+#Odvod skalarnega polja F po x (Fx), pri tem uporablja sim. dif.
 
-odvodxx = function(F,hx){
+odvodx = function(F,h){
 
-m = dim(F)[1]
-n = dim(F)[2]
-Fxx = matrix(1:(n*m),m)
+n = dim(F)[1]
+m = dim(F)[2]
+Fx = matrix(1:(n*m),n)
 
-Fxx[,2:(n-1)] = 1/(hx^2)*(F[,3:n]+F[,1:(n-2)]-2*F[,2:(n-1)])
-Fxx[,1] = 1/(hx^2)*(F[,2]-F[,1])
-Fxx[,n] = 1/(hx^2)*(F[,(n-1)]-F[,n])
+Fx[2:(n-1),] = 1/(2*h)*(F[3:n,]-F[1:(n-2),])
+Fx[1,] = 1/(2*h)*(F[2,]-F[1,])
+Fx[n,] = 1/(2*h)*(F[n,]-F[(n-1),])
 
-return(Fxx)
+return(Fx)
 }
 
-#Drugi odvod skalarnega polja F po y (Fyy)
+#Drugi odvod skalrnega polja F po y (Fyy)
 
-odvodyy = function(F,hy){
-m = dim(F)[1]
-n = dim(F)[2]
-Fyy = matrix(1:(n*m),m)
+odvodyy = function(F,h){
 
-Fyy[2:(n-1),] = 1/(hy^2)*(F[3:n,]+F[1:(n-2),]-2*F[2:(n-1),])
-Fyy[1,] = 1/(hy^2)*(F[2,]-F[1,])
-Fyy[n,] = 1/(hy^2)*(F[(n-1),]-F[n,])
+n = dim(F)[1]
+m = dim(F)[2]
+Fyy = matrix(1:(n*m),n)
+
+Fyy[,2:(m-1)] = 1/(h^2)*(F[,3:m]+F[,1:(m-2)]-2*F[,2:(m-1)])
+Fyy[,1] = 1/(h^2)*(F[,2]-F[,1])
+Fyy[,m] = 1/(h^2)*(F[,(m-1)]-F[,m])
 
 return(Fyy)
+}
+
+#Drugi odvod skalarnega polja F po x (Fxx)
+
+odvodxx = function(F,h){
+
+n = dim(F)[1]
+m = dim(F)[2]
+Fxx = matrix(1:(n*m),n)
+
+Fxx[2:(n-1),] = 1/(h^2)*(F[3:n,]+F[1:(n-2),]-2*F[2:(n-1),])
+Fxx[1,] = 1/(h^2)*(F[2,]-F[1,])
+Fxx[n,] = 1/(h^2)*(F[(n-1),]-F[n,])
+
+return(Fxx)
 }
