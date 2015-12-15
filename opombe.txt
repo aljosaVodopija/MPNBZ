@@ -12,3 +12,4 @@ Vetrovni in temperaturni podatki:
 -load("zonalniVeter.txt")
 -load("meridionalniVeter.txt")
 -load("temperatura.txt")
+-dinamicno vreme as.Date(datum), formate(datum, formate="%Y%m%d")
