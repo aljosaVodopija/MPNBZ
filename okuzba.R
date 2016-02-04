@@ -295,42 +295,7 @@ Tem = Tem-273
 
 
 
-###############################################################
-
-NASTAVI_NICLE = function(){
-  
-  #zacetne nastavitve
-  #odpremo podatke
-  file = "geo_em.d02.nc"
-  fid = ncdf4::nc_open(file,write=FALSE)
-  lu = ncdf4::ncvar_get(fid, "LU_INDEX")[61:153,53:108] #LU index
-  visina = ncdf4::ncvar_get(fid, "HGT_M")[61:153,53:108]  # nadmorska visina
-  ncdf4::nc_close(fid)
-  N = 93
-  M = 56
-  max_visina = 999 # maksimalna nadmorska visina
-  neugodne_povrsine = c(1,2,3,4,5,11,15,17)#neugodne povrsine
-  dim = c((N-2)*3,(M-2)*4)
-  X = matrix(rep(0, dim[1]*dim[2]), dim[1])
-  
-  for (i in 2:(N-1)){ 
-    
-    for (j in 2:(M-1)){
-      
-      #preveri ali je visina visja od max oz. ali je povrsina neugodna in
-      #v pozitivnem primeru nastavi nicle
-      if((visina[i,j] > max_visina) || (lu[i,j] %in% neugodne_povrsine)){
-        X[(3*(i-2)+1):(3*(i-2)+3),(4*(j-2)+1):(4*(j-2)+4)]=0
-      } else {
-        X[(3*(i-2)+1):(3*(i-2)+3),(4*(j-2)+1):(4*(j-2)+4)]=1
-      }
-      
-    }}
-  
-  return(X)
-}
-
-matrika_nicel = NASTAVI_NICLE()
+load("matrikaNicel.txt")
 #####################################
 
 
@@ -420,8 +385,8 @@ for(i in 1:leto){
   laplace_o <- LAPLACE(muhe_o)
   muhe_z <- muhe_z + gamma * muhe_z -  c_2 *st_muh * okuzeni + c_3 * gradient_z + c_4*divergenca*muhe_z + c_5 *laplace_z
   muhe_o <- muhe_o + c_2 * st_muh* okuzeni + c_6* gradient_o + c_4*divergenca*muhe_o + c_5 * laplace_o
-  muhe_z <- muhe_z * matrika_nicel
-  muhe_o <- muhe_o * matrika_nicel
+  muhe_z <- muhe_z * matrikaNicel
+  muhe_o <- muhe_o * matrikaNicel
   
   matrika = matrika - (c_2/st_muh)*muhe_o
   okuzeni = okuzeni + (c_2/st_muh)*muhe_o

@@ -1,7 +1,7 @@
 nastaviMatrikoNicel <- function (maxVisina, neugodnePovrsine) {
   #odpremo podatke
   povrsine <- "geo_em.d02.nc"
-  fid = ncdf4::nc_open(file,write=FALSE)
+  fid = ncdf4::nc_open(povrsine,write=FALSE)
   lu = ncdf4::ncvar_get(fid, "LU_INDEX")[61:153,53:108] #LU index
   visina = ncdf4::ncvar_get(fid, "HGT_M")[61:153,53:108]  # nadmorska visina
   ncdf4::nc_close(fid)
