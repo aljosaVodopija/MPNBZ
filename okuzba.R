@@ -1,23 +1,19 @@
-install.packages("ggmap")
-install.packages("rworldmap")
-install.packages("ggmap")
-install.packages("rworldmap")
-install.packages("plotrix")
-install.packages("ncdf")
-library("ncdf")
-library("ncdf.tools")
+# install.packages("ggmap")
+# install.packages("ncdf4")
+# install.packages("plotrix")
+# install.packages("raster")
+# install.packages("RCurl")
+# install.packages("rworldmap")
+library(ncdf4)
 library(ggmap)
 library(rworldmap)
 library(RCurl)
 library(RJSONIO)
 library(plyr)
 library(plotrix)
+library(RgoogleMaps)
+library(raster)
 
-library(ggmap)
-library(rworldmap)
-library(RCurl)
-library(RJSONIO)
-library(plyr)
 
 ####### naložimo podatke #####
 poskus <-  read.delim("drobnica_stalez_3l.txt")  # dvakrat ista datoteka
@@ -108,7 +104,6 @@ lat[vec[8]] <- geocode("ZAVRČ, SLOVENIJA")$lat
 
 
 
-library(RgoogleMaps)
 lim<- geocode(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
 
 lonn <- c(min(lim$lon), max(lim$lon)) #define our map's ylim
@@ -214,7 +209,6 @@ tmp2 <- PlotOnStaticMap(terrmap2, lat2, lon2, cex=as.numeric(bum2$Freq)/150,pch=
 
 dev.off()
 
-library(raster)
 cell.length <- 1000
 premik2 <- data.matrix(premik2)
 x.min <- min(as.numeric(premik2[,5]))#min(na.omit(lat2))
@@ -242,17 +236,17 @@ lat2[is.na(lat2)] <- 0
 file = "20150530.nc" #to bo nek datum v odvisnosti od t, t.j. datum(t), 
 # ko bo zanka nrejena mi posljes pa bom popravil
 
-fid=open.ncdf(file, write=FALSE)
+fid=ncdf4::nc_open(file, write=FALSE)
 
 
 
 #preberemo vetrovni komponenti
-ut = get.var.ncdf(fid, "u10")[61:153,53:108,] 
+ut = ncdf4::ncvar_get(fid, "u10")[61:153,53:108,]
 
-vt = get.var.ncdf(fid, "v10")[61:153,53:108,]
+vt = ncdf4::ncvar_get(fid, "v10")[61:153,53:108,]
 # temperatura v odvisnosti od casa
-tt = get.var.ncdf(fid, "t2")[61:153,53:108,] 
-close.ncdf(fid)
+tt = ncdf4::ncvar_get(fid, "t2")[61:153,53:108,]
+ncdf4::nc_close(fid)
 
 #povprecimo veter cez dan
 u = ut[,,8]
@@ -409,10 +403,10 @@ NASTAVI_NICLE = function(){
   #zacetne nastavitve
   #odpremo podatke
   file = "geo_em.d02.nc"
-  fid = open.ncdf(file,write=FALSE)
-  lu = get.var.ncdf(fid, "LU_INDEX")[61:153,53:108] #LU index
-  visina = get.var.ncdf(fid, "HGT_M")[61:153,53:108]  # nadmorska visina
-  close.ncdf(fid)
+  fid = ncdf4::nc_open(file,write=FALSE)
+  lu = ncdf4::ncvar_get(fid, "LU_INDEX")[61:153,53:108] #LU index
+  visina = ncdf4::ncvar_get(fid, "HGT_M")[61:153,53:108]  # nadmorska visina
+  ncdf4::nc_close(fid)
   N = 93
   M = 56
   max_visina = 999 # maksimalna nadmorska visina

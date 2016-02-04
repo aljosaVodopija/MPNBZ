@@ -9,12 +9,12 @@ nastaviVreme <- function (podatkiVreme, stDni) {
   temperatura <- array(0, dim = c(dim[1], dim[2], stDni))
 
   for (i in 1:stDni) {
-    fid <- open.ncdf(podatkiVreme, write = FALSE)
+    fid <- ncdf4::nc_open(podatkiVreme, write = FALSE)
     #preberemo vetrovni komponenti in temperaturo
-    ut <- get.var.ncdf(fid, "u10")[61:153, 53:108, ]
-    vt <- get.var.ncdf(fid, "v10")[61:153, 53:108, ]
-    tt <- get.var.ncdf(fid, "t2")[61:153, 53:108, ]
-    close.ncdf(fid)
+    ut <- ncdf4::ncvar_get(fid, "u10")[61:153, 53:108, ]
+    vt <- ncdf4::ncvar_get(fid, "v10")[61:153, 53:108, ]
+    tt <- ncdf4::ncvar_get(fid, "t2")[61:153, 53:108, ]
+    ncdf4::nc_close(fid)
 
     u <- round(apply(ut, c(1,2), mean), 1)
     v <- round(apply(vt, c(1,2), mean), 1)
