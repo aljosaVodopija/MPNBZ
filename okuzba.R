@@ -1,4 +1,3 @@
-setwd("C:/projekt")
 install.packages("ggmap")
 install.packages("rworldmap")
 install.packages("ggmap")
@@ -21,10 +20,10 @@ library(RJSONIO)
 library(plyr)
 
 ####### naložimo podatke #####
-poskus <-  read.delim("C:/Projekt/drobnica_stalez_3l.txt")  # dvakrat ista datoteka
-premik_D <- read.table("C:/Projekt/drobnica_stalez_3l.txt", fill = TRUE)
-premik_P <- read.table("C:/Projekt/prasici_stalez_3l.txt",fill = TRUE)
-premik_G <- read.table("C:/Projekt/govedo_3leta.txt",fill = TRUE)
+poskus <-  read.delim("drobnica_stalez_3l.txt")  # dvakrat ista datoteka
+premik_D <- read.table("drobnica_stalez_3l.txt", fill = TRUE)
+premik_P <- read.table("prasici_stalez_3l.txt",fill = TRUE)
+premik_G <- read.table("govedo_3leta.txt",fill = TRUE)
 premik <- premik_D[3:length(premik_D[,1]),]
 premik1 <- premik_P[3:length(premik_P[,1]),]
 premik2 <- premik_G[5:length(premik_G[,1]),]
