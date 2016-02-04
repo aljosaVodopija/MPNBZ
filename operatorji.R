@@ -6,7 +6,7 @@ hy = 1 #latitude razdalja
 #DIV izracuna diskretno divergenco F=(F1,F2) (vektorsko polje vetra)
 #Prejme metriko X (jakost zonalnega vetra) in matriko Y (jakost meridionalnega vetra),
 #pri tem velja dim(Y)=dim(X). 
-#Izraèuna matriki F1x in F2y ter vrne matriko F1x + F2y. 
+#IzraÄuna matriki F1x in F2y ter vrne matriko F1x + F2y. 
 
 DIV = function(X,Y){
 
@@ -15,7 +15,7 @@ return(odvodx(X,hx)+odvody(Y,hy))
 
 #GRADF izracuna s. p. med grad(m)*F (m skalarno polje, F vektorsko polje)
 #Prejme metriko M in matriki X, Y  
-#Izraèuna matriki Mx, My in vrne iskani s. p. 
+#IzraÄuna matriki Mx, My in vrne iskani s. p. 
 
 GRADF = function(M,X,Y){
 
