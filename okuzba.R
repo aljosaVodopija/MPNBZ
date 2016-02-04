@@ -31,14 +31,12 @@ geocode.cache <- function(mesta) {
 }
 
 ####### naložimo podatke #####
-poskus <-  read.delim("drobnica_stalez_3l.txt")  # dvakrat ista datoteka
 premik_D <- read.table("drobnica_stalez_3l.txt", fill = TRUE)
 premik_P <- read.table("prasici_stalez_3l.txt",fill = TRUE)
 premik_G <- read.table("govedo_3leta.txt",fill = TRUE)
 premik <- premik_D[3:length(premik_D[,1]),]
 premik1 <- premik_P[3:length(premik_P[,1]),]
 premik2 <- premik_G[5:length(premik_G[,1]),]
-map <- get_map(location = 'Europe', zoom = 4)
 
 ## zemljevid slovenije
 newmap <- getMap(resolution = "high")
@@ -48,17 +46,7 @@ europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "
 
 
 
-ou <- sapply(premik$V1, as.character)
 obcine <- sapply(premik$V2, as.character)
-#for(i in 1:length(obcine)){
-#if(unlist(gregexpr("[0-9]+", obcine[i]))== 1){
-#obcine[i] = ou[i]
-#} 
-#}
-
-
-#unwanted_array = list('Š'='S', 'š'='s', 'Ž'='Z', "ž"= "z", "Č"="C", "č"="c")
-#bu <- chartr(paste(names(unwanted_array), collapse=''),paste(unwanted_array, collapse=''),obcine)
 obcine <- iconv(obcine, to="windows-1251")
 stevilo <- premik$V7
 stevilo <- data.matrix(stevilo)
@@ -73,7 +61,6 @@ for(i in 1:length(bum$bum)){
 
 
 
-vidi <- bum$bum[which(is.na(drobnica))]
 
 
 
@@ -92,20 +79,6 @@ drobnicaTabela <- data.frame(lon = lon, lat = lat, stevilo = drobnica)
 rownames(drobnicaTabela) <- as.character(bum$bum)
 save(drobnicaTabela, file = 'drobnica.txt')
 
-
-#lon <- x1[,1]
-#lat <- x1[,2]
-#lon[which(is.na(lon))] <- rep(ajd$lon, length(which(is.na(lon))))
-#lat[which(is.na(lat))] <- rep(ajd$lat, length(which(is.na(lat))))
-
-#a<-as.data.frame(table(lon))
-#b<-as.data.frame(table(lat))
-#d<-length(a[,1])
-#for(i in 1:d){
-#k = which(a[,2]==b[i,2])
-#a[i,1] = a[k,1] 
-#}
-#a[,2] = b[,2]
 
 
 
@@ -133,7 +106,6 @@ points(lon, lat, pch=19, col="red", cex = as.numeric(bum$Freq)/200)
 
 ###########################################################################
 
-ou1 <- sapply(premik1$V1, as.character)
 obcine1 <- sapply(premik1$V2, as.character)
 
 
@@ -177,7 +149,6 @@ points(lon1, lat1, pch=19, col="blue", cex = as.numeric(bum1$Freq)/700)
 
 
 #########################################################################
-ou2 <- sapply(premik2$V1, as.character)
 obcine2 <- sapply(premik2$V2, as.character)
 
 bum2 <-iconv(obcine2, to="windows-1251")
@@ -212,19 +183,6 @@ tmp2 <- PlotOnStaticMap(terrmap2, lat2, lon2, cex=as.numeric(bum2$Freq)/150,pch=
 
 dev.off()
 
-cell.length <- 1000
-premik2 <- data.matrix(premik2)
-x.min <- min(as.numeric(premik2[,5]))#min(na.omit(lat2))
-x.max <- max(as.numeric(premik2[,5]))#max(na.omit(lat2))
-y.min <- min(as.numeric(premik2[,6]))#min(na.omit(lon2))
-y.max <- max(as.numeric(premik2[,6]))#max(na.omit(lon2))
-ncol <- round((x.max - x.min) / cell.length, 0)
-nrow <- round((y.max - y.min) / cell.length, 0)
-blank.grid <- raster(ncols=ncol, nrows=nrow, xmn=x.min, xmx=x.max, ymn=y.min, ymx=y.max)
-
-
-land.grid = rasterize(cbind(lon2,lat2), blank.grid)
-plot(land.grid)
 plot(newmap,xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1)
 points(lon2, lat2, pch=19, col="green", cex = as.numeric(bum2$Freq)/500)
 lon[is.na(lon)] <- 0
