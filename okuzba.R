@@ -110,7 +110,7 @@ markers = paste0("&markers=color:blue|label:S|latt[1],lonn[1]&markers=color:",
 center = c(geocode.cache("Celje")$lat, geocode.cache("Ljubljana")$lon)  #tell what point to center on
 zoom <- 8 
 #### Drobnica grafični prikaz, razmerje 1:50
-terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
+try(terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"), silent=TRUE)
 png("drobnica.png", type='cairo-png')
 tmp <- PlotOnStaticMap(terrmap, lat, lon, cex=as.numeric(bum$Freq)/50,pch=20,col="red")
 dev.off()
@@ -153,7 +153,7 @@ for(i in 1:length(bum1$bum1)){
 }
 
 ##### prasici.png je prikaz prasicev v Sloveniji, razmerje 1:250
-terrmap1 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
+try(terrmap1 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"))
 png("prasici.png", type='cairo-png')
 tmp1 <- PlotOnStaticMap(terrmap, lat1, lon1, cex=as.numeric(bum1$Freq)/250,pch=20,col="blue")
 dev.off()
@@ -192,7 +192,7 @@ for(i in 1:length(bum2$bum2)){
   
 }
 
-terrmap2 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
+try(terrmap2 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"))
 ### Govedo-zemljevid, razmerje 1:150
 png("govedo.png", type='cairo-png')
 tmp2 <- PlotOnStaticMap(terrmap2, lat2, lon2, cex=as.numeric(bum2$Freq)/150,pch=20,col="purple")
