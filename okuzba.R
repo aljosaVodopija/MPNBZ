@@ -14,6 +14,18 @@ library(plotrix)
 library(RgoogleMaps)
 library(raster)
 
+geocode.cache <- function(mesta) {
+  kode = read.csv('kode.csv', row.names = 1)
+  for(mesto in mesta) {
+    mesto = toupper(mesto)
+    if(!mesto %in% rownames(kode)) {
+      polozaj = geocode(paste(mesto, "SLOVENIJA"))
+      kode[mesto, ] = polozaj
+    }
+  }
+  write.csv(kode, 'kode.csv')
+  return(kode[toupper(mesta), ])
+}
 
 ####### naložimo podatke #####
 poskus <-  read.delim("drobnica_stalez_3l.txt")  # dvakrat ista datoteka
@@ -27,7 +39,7 @@ map <- get_map(location = 'Europe', zoom = 4)
 
 ## zemljevid slovenije
 newmap <- getMap(resolution = "high")
-europe.limits <- geocode(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
+europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
 
 
 
@@ -66,24 +78,24 @@ lat <- rep(0, length(bum$bum))
 
 for(i in 1:length(bum$bum)){
   mesto <- bum$bum[i]
-  lon[i] <- as.numeric(geocode(paste(mesto, "Slovenija"))$lon)
-  lat[i] <- as.numeric(geocode(paste(mesto, "Slovenija"))$lat)
+  lon[i] <- as.numeric(geocode.cache(mesto)$lon)
+  lat[i] <- as.numeric(geocode.cache(mesto)$lat)
 }
 vec <-which(is.na(lon))
-lon[vec[1]] <- geocode("DIVAČA, SLOVENIJA")$lon
-lat[vec[1]] <- geocode("DIVAČA, SLOVENIJA")$lat
-lon[vec[2]] <- geocode("ČRNA, SLOVENIJA")$lon
-lat[vec[2]] <- geocode("ČRNA, SLOVENIJA")$lat
-lon[vec[3]] <- geocode("LUČE, SLOVENIJA")$lon
-lat[vec[3]] <- geocode("LUČE, SLOVENIJA")$lat
-lon[vec[5]] <- geocode("REČICA, SLOVENIJA")$lon
-lat[vec[5]] <- geocode("REČICA, SLOVENIJA")$lat
-lon[vec[6]] <- geocode("SENČUR, SLOVENIJA")$lon
-lat[vec[6]] <- geocode("SUNČUR, SLOVENIJA")$lat
-lon[vec[7]] <- geocode("SOLČAVA, SLOVENIJA")$lon
-lat[vec[7]] <- geocode("SOLČAVA, SLOVENIJA")$lat
-lon[vec[8]] <- geocode("ZAVRČ, SLOVENIJA")$lon
-lat[vec[8]] <- geocode("ZAVRČ, SLOVENIJA")$lat
+lon[vec[1]] <- geocode.cache("DIVAČA")$lon
+lat[vec[1]] <- geocode.cache("DIVAČA")$lat
+lon[vec[2]] <- geocode.cache("ČRNA")$lon
+lat[vec[2]] <- geocode.cache("ČRNA")$lat
+lon[vec[3]] <- geocode.cache("LUČE")$lon
+lat[vec[3]] <- geocode.cache("LUČE")$lat
+lon[vec[5]] <- geocode.cache("REČICA")$lon
+lat[vec[5]] <- geocode.cache("REČICA")$lat
+lon[vec[6]] <- geocode.cache("SENČUR")$lon
+lat[vec[6]] <- geocode.cache("SUNČUR")$lat
+lon[vec[7]] <- geocode.cache("SOLČAVA")$lon
+lat[vec[7]] <- geocode.cache("SOLČAVA")$lat
+lon[vec[8]] <- geocode.cache("ZAVRČ")$lon
+lat[vec[8]] <- geocode.cache("ZAVRČ")$lat
 
 
 
@@ -104,13 +116,13 @@ lat[vec[8]] <- geocode("ZAVRČ, SLOVENIJA")$lat
 
 
 
-lim<- geocode(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
+lim<- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
 
 lonn <- c(min(lim$lon), max(lim$lon)) #define our map's ylim
 latt <- c(min(lim$lat), max(lim$lat)) #define our map's xlim
 markers = paste0("&markers=color:blue|label:S|latt[1],lonn[1]&markers=color:",
                  "green|label:G|latt[2], lonn[2]")
-center = c(geocode("Celje, Slovenija")$lat, geocode("Ljubljana, Slovenija")$lon)  #tell what point to center on
+center = c(geocode.cache("Celje")$lat, geocode.cache("Ljubljana")$lon)  #tell what point to center on
 zoom <- 8 
 #### Drobnica grafični prikaz, razmerje 1:50
 terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
@@ -150,8 +162,8 @@ lat1 <- rep(0, length(bum1$bum1))
 
 for(i in 1:length(bum1$bum1)){
   mesto1 <- bum1$bum1[i]
-  lon1[i] <- as.numeric(geocode(paste(mesto1, "Slovenija"))$lon)
-  lat1[i] <- as.numeric(geocode(paste(mesto1, "Slovenija"))$lat)
+  lon1[i] <- as.numeric(geocode.cache(mesto1)$lon)
+  lat1[i] <- as.numeric(geocode.cache(mesto1)$lat)
   
 }
 
@@ -194,8 +206,8 @@ lat2 <- rep(0, length(bum2$bum2))
 
 for(i in 1:length(bum2$bum2)){
   mesto2 <- bum2$bum2[i]
-  lon2[i] <- as.numeric(geocode(paste(mesto2, "Slovenija"))$lon)
-  lat2[i] <- as.numeric(geocode(paste(mesto2, "Slovenija"))$lat)
+  lon2[i] <- as.numeric(geocode.cache(mesto2)$lon)
+  lat2[i] <- as.numeric(geocode.cache(mesto2)$lat)
   
 }
 
@@ -470,7 +482,7 @@ okuzeni <- matrix(rep(0, dim[1]*dim[2]), dim[1], dim[2])
 ######################################################
 ### Parametra naj bi bil mesto okuzbe - npr: Grosuplje
 #####################################################
-okuzba<- geocode("Grosuplje, Slovenija") ### lokacija, na kateri nastane okužba
+okuzba<- geocode.cache("Grosuplje") ### lokacija, na kateri nastane okužba
 
 ########### Paramerer-stevilo okuzenih ##############
 stevilo_okuzenih <- 200 ### stevilo okuzenih na dani lokaciji
