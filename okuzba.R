@@ -1,12 +1,7 @@
-library(ncdf4)
-library(ggmap)
-library(rworldmap)
-library(RCurl)
-library(RJSONIO)
-library(plyr)
-library(plotrix)
+# install.packages(c("RgoogleMaps", "rworldmap", "rworldxtra"))
+
 library(RgoogleMaps)
-library(raster)
+library(rworldmap)
 
 source("funkcije.r")
 

@@ -1,20 +1,4 @@
-# install.packages("ggmap")
 # install.packages("ncdf4")
-# install.packages("plotrix")
-# install.packages("raster")
-# install.packages("RCurl")
-# install.packages("rworldmap")
-# install.packages("rworldxtra")
-
-library(ncdf4)
-library(ggmap)
-library(rworldmap)
-library(RCurl)
-library(RJSONIO)
-library(plyr)
-library(plotrix)
-library(RgoogleMaps)
-library(raster)
 
 source('funkcije.r')
 
