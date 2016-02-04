@@ -81,21 +81,6 @@ for(i in 1:length(bum$bum)){
   lon[i] <- as.numeric(geocode.cache(mesto)$lon)
   lat[i] <- as.numeric(geocode.cache(mesto)$lat)
 }
-vec <-which(is.na(lon))
-lon[vec[1]] <- geocode.cache("DIVAČA")$lon
-lat[vec[1]] <- geocode.cache("DIVAČA")$lat
-lon[vec[2]] <- geocode.cache("ČRNA")$lon
-lat[vec[2]] <- geocode.cache("ČRNA")$lat
-lon[vec[3]] <- geocode.cache("LUČE")$lon
-lat[vec[3]] <- geocode.cache("LUČE")$lat
-lon[vec[5]] <- geocode.cache("REČICA")$lon
-lat[vec[5]] <- geocode.cache("REČICA")$lat
-lon[vec[6]] <- geocode.cache("SENČUR")$lon
-lat[vec[6]] <- geocode.cache("SUNČUR")$lat
-lon[vec[7]] <- geocode.cache("SOLČAVA")$lon
-lat[vec[7]] <- geocode.cache("SOLČAVA")$lat
-lon[vec[8]] <- geocode.cache("ZAVRČ")$lon
-lat[vec[8]] <- geocode.cache("ZAVRČ")$lat
 
 
 
@@ -167,10 +152,6 @@ for(i in 1:length(bum1$bum1)){
   
 }
 
-vec1 <- which(is.na(lon1))
-lon1[vec1]  <- lon[vec]
-lat1[vec1]  <- lat[vec]
-
 ##### prasici.png je prikaz prasicev v Sloveniji, razmerje 1:250
 terrmap1 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
 png("prasici.png", type='cairo-png')
@@ -211,9 +192,6 @@ for(i in 1:length(bum2$bum2)){
   
 }
 
-vec2 <- which(is.na(lon2))
-lon2[vec2]  <- lon[vec]
-lat2[vec2]  <- lat[vec]
 terrmap2 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap") 
 ### Govedo-zemljevid, razmerje 1:150
 png("govedo.png", type='cairo-png')
