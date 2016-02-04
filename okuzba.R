@@ -302,12 +302,12 @@ okuzeni[x_koordinata, y_koordinata] <- stevilo_okuzenih
 ### Govedo #### 
 matrika <- matrix(rep(0, dim[1]*dim[2]), dim[1], dim[2])
 muhe_o <- (okuzeni * st_muh) /0.9
-n <- length(lon2)
+n <- length(govedaTabela$lon2)
 for(k in 1:n){
-  prva <- which(abs(vsi_x-lon2[k])==min(abs(vsi_x-lon2[k])))
-  druga <- which(abs(vsi_y-lat2[k])==min(abs(vsi_y-lat2[k])))
-  matrika[prva, druga] <- (matrika[prva, druga] + (goveda[k])/ (0.9))
-  muhe_z[prva, druga] <- (muhe_z[prva, druga] + (goveda[k]*st_muh)/ (0.9))  
+  prva <- which(abs(vsi_x-govedaTabela$lon2[k])==min(abs(vsi_x-govedaTabela$lon2[k])))
+  druga <- which(abs(vsi_y-govedaTabela$lat2[k])==min(abs(vsi_y-govedaTabela$lat2[k])))
+  matrika[prva, druga] <- (matrika[prva, druga] + (govedaTabela$stevilo[k])/ (0.9))
+  muhe_z[prva, druga] <- (muhe_z[prva, druga] + (govedaTabela$stevilo[k]*st_muh)/ (0.9))  
 }
 
 
