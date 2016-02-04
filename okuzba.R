@@ -72,6 +72,7 @@ for(i in 1:length(bum$bum)){
 }
 
 
+
 vidi <- bum$bum[which(is.na(drobnica))]
 
 
@@ -85,6 +86,11 @@ for(i in 1:length(bum$bum)){
   lat[i] <- as.numeric(geocode.cache(mesto)$lat)
 }
 
+
+
+drobnicaTabela <- data.frame(lon = lon, lat = lat, stevilo = drobnica)
+rownames(drobnicaTabela) <- as.character(bum$bum)
+save(drobnicaTabela, file = 'drobnica.txt')
 
 
 #lon <- x1[,1]
@@ -143,8 +149,6 @@ for(i in 1:length(bum1$bum1)){
 }
 
 
-
-
 lon1 <- rep(0, length(bum1$bum1))
 lat1 <- rep(0, length(bum1$bum1))
 
@@ -154,6 +158,11 @@ for(i in 1:length(bum1$bum1)){
   lat1[i] <- as.numeric(geocode.cache(mesto1)$lat)
   
 }
+
+
+prasiciTabela <- data.frame(lon = lon1, lat = lat1, stevilo = prasici)
+rownames(prasiciTabela) <- as.character(bum1$bum1)
+save(prasiciTabela, file = 'prasici.txt')
 
 ##### prasici.png je prikaz prasicev v Sloveniji, razmerje 1:250
 try(terrmap1 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"))
@@ -182,9 +191,6 @@ for(i in 1:length(bum2$bum2)){
   goveda[i] = sum(na.omit(as.numeric(stevilo2[which(obcine2==bum2$bum2[i])])))
 }
 
-
-
-
 lon2 <- rep(0, length(bum2$bum2))
 lat2 <- rep(0, length(bum2$bum2))
 
@@ -194,6 +200,10 @@ for(i in 1:length(bum2$bum2)){
   lat2[i] <- as.numeric(geocode.cache(mesto2)$lat)
   
 }
+
+govedaTabela <- data.frame(lon = lon2, lat = lat2, stevilo = goveda)
+rownames(govedaTabela) <- as.character(bum2$bum2)
+save(govedaTabela, file = 'goveda.txt')
 
 try(terrmap2 <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"))
 ### Govedo-zemljevid, razmerje 1:150
