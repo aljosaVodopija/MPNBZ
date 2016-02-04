@@ -2,7 +2,7 @@ source("operatorji.R")
 source("nastaviVeter.R")
 
 geocode.cache <- function(mesta) {
-  kode = read.csv('podatki/koordinateKrajev.csv', row.names = 1)
+  kode = read.csv('vmesni-podatki/koordinateKrajev.csv', row.names = 1)
   for(mesto in mesta) {
     mesto = toupper(mesto)
     if(!mesto %in% rownames(kode)) {
@@ -10,14 +10,14 @@ geocode.cache <- function(mesta) {
       kode[mesto, ] = polozaj
     }
   }
-  write.csv(kode, 'podatki/koordinateKrajev.csv')
+  write.csv(kode, 'vmesni-podatki/koordinateKrajev.csv')
   return(kode[toupper(mesta), ])
 }
 
 
-load("podatki/zonalniVeter.RData")
-load("podatki/meridionalniVeter.RData")
-load("podatki/temperatura.RData")
+load("vmesni-podatki/zonalniVeter.RData")
+load("vmesni-podatki/meridionalniVeter.RData")
+load("vmesni-podatki/temperatura.RData")
 
 # F =(X,Y) je vektorsko polje vetra
 X = zonalniVeter[,,1] #zonalni veter v km/h (vzhod-zahod)
@@ -27,12 +27,12 @@ Tem = temperatura[,,1] # povprecna dnevna temperatura v kelvinih!!
 
 
 
-load("podatki/matrikaNicel.RData")
+load("vmesni-podatki/matrikaNicel.RData")
 #####################################
 
-load("podatki/goveda.RData")
-load("podatki/drobnica.RData")
-load("podatki/prasici.RData")
+load("vmesni-podatki/goveda.RData")
+load("vmesni-podatki/drobnica.RData")
+load("vmesni-podatki/prasici.RData")
 
 
 

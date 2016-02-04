@@ -25,7 +25,7 @@ nastaviVreme <- function (podatkiVreme, stDni) {
     temperatura[, , i] <- round(nastaviVeter(t, N, M) - 273, 1)
   }
 
-  save(zonalniVeter, file = "zonalniVeter.RData")
-  save(meridionalniVeter, file = "meridionalniVeter.RData")
-  save(temperatura, file = "temperatura.RData")
+  save(zonalniVeter, file = "vmesni-podatki/zonalniVeter.RData")
+  save(meridionalniVeter, file = "vmesni-podatki/meridionalniVeter.RData")
+  save(temperatura, file = "vmesni-podatki/temperatura.RData")
 }

@@ -4,4 +4,4 @@ maxVisina <- 1000
 nastaviMatrikoNicel(maxVisina, neugodnePovrsine)
 
 source("nastaviVreme.R")
-nastaviVreme("20150530.nc", 1)
+nastaviVreme("vhodni-podatki/20150530.nc", 1)
