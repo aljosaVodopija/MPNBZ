@@ -1,3 +1,4 @@
+source("nastaviVeter.r")
 nastaviVreme <- function (podatkiVreme, stDni) {
 
   N <- 93
