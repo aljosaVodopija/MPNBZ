@@ -225,50 +225,15 @@ lat1[is.na(lat1)] <- 0
 lat2[is.na(lat2)] <- 0
 
 
-#################################################################33
-file = "20150530.nc" #to bo nek datum v odvisnosti od t, t.j. datum(t), 
-# ko bo zanka nrejena mi posljes pa bom popravil
 
-fid=ncdf4::nc_open(file, write=FALSE)
-
-
-
-#preberemo vetrovni komponenti
-ut = ncdf4::ncvar_get(fid, "u10")[61:153,53:108,]
-
-vt = ncdf4::ncvar_get(fid, "v10")[61:153,53:108,]
-# temperatura v odvisnosti od casa
-tt = ncdf4::ncvar_get(fid, "t2")[61:153,53:108,]
-ncdf4::nc_close(fid)
-
-#povprecimo veter cez dan
-u = ut[,,8]
-v = vt[,,8]
-t = tt[,,8]
-
-for (i in c(10,12,14,16,18,20,22)){
-  u = u + ut[,,i]
-  v = v + vt[,,i]
-  t = t + tt[,,i]
-}
-
-v = 1/8*v
-u = 1/8*u
-t = 1/8*t # povprecna dnevna temperatura
-
-N = dim(u)[1] # to je v bistvu dim[1]+2 in dim[2]+2 v tvojem primeru
-M = dim(u)[2] 
-
-
-
-
-
+load("zonalniVeter.txt")
+load("meridionalniVeter.txt")
+load("temperatura.txt")
 
 # F =(X,Y) je vektorsko polje vetra
-X = (3.6*24)*nastaviVeter(u,N,M) #zonalni veter v km/h (vzhod-zahod)
-Y = (3.6*24)*nastaviVeter(v,N,M) #meridionalni veter v km/h (jug-sever)
-Tem = nastaviVeter(t,N,M) # povprecna dnevna temperatura v kelvinih!!
-Tem = Tem-273 
+X = zonalniVeter[,,1] #zonalni veter v km/h (vzhod-zahod)
+Y = meridionalniVeter[,,1] #meridionalni veter v km/h (jug-sever)
+Tem = temperatura[,,1] # povprecna dnevna temperatura v kelvinih!!
 
 
 
