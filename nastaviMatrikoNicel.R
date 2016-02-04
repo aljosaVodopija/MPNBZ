@@ -21,5 +21,5 @@ nastaviMatrikoNicel <- function (maxVisina, neugodnePovrsine) {
       }
     }
   }
-  save(matrikaNicel, file = "matrikaNicel.txt")
+  save(matrikaNicel, file = "matrikaNicel.RData")
 }

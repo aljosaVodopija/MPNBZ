@@ -19,7 +19,7 @@ source("nastaviVeter.R")
 source("naloziZivali.R")
 
 geocode.cache <- function(mesta) {
-  kode = read.csv('kode.csv', row.names = 1)
+  kode = read.csv('podatki/koordinateKrajev.csv', row.names = 1)
   for(mesto in mesta) {
     mesto = toupper(mesto)
     if(!mesto %in% rownames(kode)) {
@@ -27,22 +27,23 @@ geocode.cache <- function(mesta) {
       kode[mesto, ] = polozaj
     }
   }
-  write.csv(kode, 'kode.csv')
+  write.csv(kode, 'podatki/koordinateKrajev.csv')
   return(kode[toupper(mesta), ])
 }
 
+
 ####### naložimo podatke #####
 drobnica <- naloziZivali("drobnica_stalez_3l.txt", 3)
-save(drobnica, file = 'drobnica.txt')
+save(drobnica, file = 'drobnica.RData')
 narisi(drobnica, "red", 200)
 shraniZemljevid(drobnica, "drobnica.png", "red", 50)
 
 prasici <- naloziZivali("prasici_stalez_3l.txt", 3)
-save(prasici, file = 'prasici.txt')
+save(prasici, file = 'prasici.RData')
 narisi(prasici, "blue", 700)
 shraniZemljevid(prasici, "prasici.png", "blue", 250)
 
 govedo <- naloziZivali("govedo_3leta.txt", 5)
-save(govedo, file = 'goveda.txt')
+save(govedo, file = 'goveda.RData')
 narisi(govedo, "green", 500)
 shraniZemljevid(govedo, "govedo.png", "purple", 150)

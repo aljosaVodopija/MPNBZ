@@ -2,7 +2,7 @@ source("operatorji.R")
 source("nastaviVeter.R")
 
 geocode.cache <- function(mesta) {
-  kode = read.csv('kode.csv', row.names = 1)
+  kode = read.csv('podatki/koordinateKrajev.csv', row.names = 1)
   for(mesto in mesta) {
     mesto = toupper(mesto)
     if(!mesto %in% rownames(kode)) {
@@ -10,14 +10,14 @@ geocode.cache <- function(mesta) {
       kode[mesto, ] = polozaj
     }
   }
-  write.csv(kode, 'kode.csv')
+  write.csv(kode, 'podatki/koordinateKrajev.csv')
   return(kode[toupper(mesta), ])
 }
 
 
-load("zonalniVeter.txt")
-load("meridionalniVeter.txt")
-load("temperatura.txt")
+load("podatki/zonalniVeter.RData")
+load("podatki/meridionalniVeter.RData")
+load("podatki/temperatura.RData")
 
 # F =(X,Y) je vektorsko polje vetra
 X = zonalniVeter[,,1] #zonalni veter v km/h (vzhod-zahod)
@@ -27,12 +27,12 @@ Tem = temperatura[,,1] # povprecna dnevna temperatura v kelvinih!!
 
 
 
-load("matrikaNicel.txt")
+load("podatki/matrikaNicel.RData")
 #####################################
 
-load("goveda.txt")
-load("drobnica.txt")
-load("prasici.txt")
+load("podatki/goveda.RData")
+load("podatki/drobnica.RData")
+load("podatki/prasici.RData")
 
 
 
@@ -83,12 +83,12 @@ okuzeni[x_koordinata, y_koordinata] <- stevilo_okuzenih
 ### Govedo #### 
 matrika <- matrix(rep(0, dim[1]*dim[2]), dim[1], dim[2])
 muhe_o <- (okuzeni * st_muh) /0.9
-n <- length(govedaTabela$lon2)
+n <- length(govedo$lon)
 for(k in 1:n){
-  prva <- which(abs(vsi_x-govedaTabela$lon2[k])==min(abs(vsi_x-govedaTabela$lon2[k])))
-  druga <- which(abs(vsi_y-govedaTabela$lat2[k])==min(abs(vsi_y-govedaTabela$lat2[k])))
-  matrika[prva, druga] <- (matrika[prva, druga] + (govedaTabela$stevilo[k])/ (0.9))
-  muhe_z[prva, druga] <- (muhe_z[prva, druga] + (govedaTabela$stevilo[k]*st_muh)/ (0.9))  
+  prva <- which(abs(vsi_x-govedo$lon[k])==min(abs(vsi_x-govedo$lon[k])))
+  druga <- which(abs(vsi_y-govedo$lat[k])==min(abs(vsi_y-govedo$lat[k])))
+  matrika[prva, druga] <- (matrika[prva, druga] + (govedo$stevilo[k])/ (0.9))
+  muhe_z[prva, druga] <- (muhe_z[prva, druga] + (govedo$stevilo[k]*st_muh)/ (0.9))  
 }
 
 
@@ -135,6 +135,8 @@ mapa_x <- vsi_x[indeksi_x]
 mapa_y <- vsi_y[indeksi_y]
 
 
+newmap <- getMap(resolution = "high")
+europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
 
 plot(newmap,xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1, main = "POSKUS")
 points(mapa_x, mapa_y, pch=19, col="green", cex = 1)
