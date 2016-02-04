@@ -15,6 +15,7 @@ library(RgoogleMaps)
 library(raster)
 
 source("operatorji.R")
+source("nastaviVeter.R")
 
 geocode.cache <- function(mesta) {
   kode = read.csv('kode.csv', row.names = 1)
@@ -261,35 +262,12 @@ M = dim(u)[2]
 
 
 
-NASTAVI_VETER = function(u,N,M){ 
-  dim = c((N-2)*3,(M-2)*4)
-  X = matrix(rep(0, dim[1]*dim[2]), dim[1])
-  for (i in 2:(N-1)){ 
-    for (j in 2:(M-1)){
-      B = matrix(rep(0,4*3),3)
-      B[1,1] = 1/6*(u[i,j-1]+u[i-1,j-1]+u[i-1,j]) + 1/2*u[i,j]
-      B[1,2] = 1/4*(u[i-1,j-1]+u[i-1,j])+ 1/2*u[i,j]
-      B[1,3] = 1/4*(u[i-1,j]+u[i-1,j+1])+ 1/2*u[i,j] 
-      B[1,4] = 1/6*(u[i-1,j]+u[i-1,j+1]+u[i,j+1]) + 1/2*u[i,j]
-      B[2,1] = 1/3*u[i,j-1] + 2/3*u[i,j]
-      B[2,2] = 1/4*u[i,j-1] + 3/4*u[i,j]
-      B[2,3] = 1/4*u[i,j+1] + 3/4*u[i,j]
-      B[2,4] = 1/3*u[i,j+1] + 2/3*u[i,j]
-      B[3,1] = 1/6*(u[i,j-1]+u[i+1,j-1]+u[i+1,j]) + 1/2*u[i,j]
-      B[3,2] = 1/4*(u[i+1,j-1]+u[i+1,j]) + 1/2*u[i,j]
-      B[3,3] = 1/4*(u[i+1,j]+u[i+1,j+1]) + 1/2*u[i,j]
-      B[3,4] = 1/6*(u[i+1,j]+u[i+1,j+1]+u[i,j+1]) + 1/2*u[i,j]
-      X[(3*(i-2)+1):(3*(i-2)+3),(4*(j-2)+1):(4*(j-2)+4)]=B
-    }}
-  return(X)
-}
-
 
 
 # F =(X,Y) je vektorsko polje vetra
-X = (3.6*24)*NASTAVI_VETER(u,N,M) #zonalni veter v km/h (vzhod-zahod)
-Y = (3.6*24)*NASTAVI_VETER(v,N,M) #meridionalni veter v km/h (jug-sever)
-Tem = NASTAVI_VETER(t,N,M) # povprecna dnevna temperatura v kelvinih!!
+X = (3.6*24)*nastaviVeter(u,N,M) #zonalni veter v km/h (vzhod-zahod)
+Y = (3.6*24)*nastaviVeter(v,N,M) #meridionalni veter v km/h (jug-sever)
+Tem = nastaviVeter(t,N,M) # povprecna dnevna temperatura v kelvinih!!
 Tem = Tem-273 
 
 
