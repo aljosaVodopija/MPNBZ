@@ -109,7 +109,7 @@ for(kraj in kraji_okuzbe) {
 ### Govedo #### 
 okuzene_muhe <- (okuzena_goveda * st_muh) / 0.9
 for(k in 1:length(govedo$lon)){
-  indeks = c(koord2indeks(govedo[k, ]))
+  indeks = koord2indeks(govedo[k, ])
   zdrava_goveda[indeks] <- govedo$stevilo[k] / 0.9
   zdrave_muhe[indeks] <- govedo$stevilo[k] * st_muh / 0.9  
 }
@@ -122,28 +122,38 @@ for(k in 1:length(govedo$lon)){
 
 for(i in 1:stevilo.dni) {
   # F = (X,Y) je vektorsko polje vetra
-  X = zonalniVeter[,,1] #zonalni veter v km/h (vzhod-zahod)
-  Y = meridionalniVeter[,,1] #meridionalni veter v km/h (jug-sever)
-  Tem = temperatura[,,1] # povprecna dnevna temperatura
+  X <- zonalniVeter[,,i] #zonalni veter v km/h (vzhod-zahod)
+  Y <- meridionalniVeter[,,i] #meridionalni veter v km/h (jug-sever)
+  T <- temperatura[,,i] # povprecna dnevna temperatura
+  ZM <- zdrave_muhe
+  OM <- okuzene_muhe
+  ZG <- zdrava_goveda
+  OG <- okuzena_goveda
+
   divergenca <- DIV(X,Y)
-  gradient_z <- GRADF(zdrave_muhe, X,Y)
-  gradient_o <- GRADF(okuzene_muhe, X,Y)
-  laplace_z <- LAPLACE(zdrave_muhe)
-  laplace_o <- LAPLACE(okuzene_muhe)
-  zdrave_muhe <- zdrave_muhe + gamma * zdrave_muhe -  c_2 *st_muh * okuzena_goveda + c_3 * gradient_z + c_4*divergenca*zdrave_muhe + c_5 *laplace_z
-  okuzene_muhe <- okuzene_muhe + c_2 * st_muh* okuzena_goveda + c_6* gradient_o + c_4*divergenca*okuzene_muhe + c_5 * laplace_o
-  zdrave_muhe <- zdrave_muhe * matrikaNicel
-  okuzene_muhe <- okuzene_muhe * matrikaNicel
+  gradient_z <- GRADF(ZM, X,Y)
+  gradient_o <- GRADF(OM, X,Y)
+  laplace_z <- LAPLACE(ZM)
+  laplace_o <- LAPLACE(OM)
+  ZM <- ZM + gamma * ZM -  c_2 *st_muh * OG + c_3 * gradient_z + c_4*divergenca*ZM + c_5 *laplace_z
+  OM <- OM + c_2 * st_muh* OG + c_6* gradient_o + c_4*divergenca*OM + c_5 * laplace_o
+  ZM <- ZM * matrikaNicel
+  OM <- OM * matrikaNicel
   
-  zdrava_goveda = zdrava_goveda - (c_2 / st_muh) * okuzene_muhe
-  okuzena_goveda = okuzena_goveda + (c_2 / st_muh) * okuzene_muhe
+  ZG <- ZG - (c_2 / st_muh) * OM
+  OG <- OG + (c_2 / st_muh) * OM
+
+  zdrave_muhe <- ZM
+  okuzene_muhe <- OM
+  zdrava_goveda <- ZG
+  okuzena_goveda <- OG
 }
 
 #################################################################
 ##################################################################
-indeksi <- which(okuzena_goveda > 0, arr.ind = TRUE)
-lon_okuzenih <- lon_indeksov[indeksi[,1]]
-lat_okuzenih <- lat_indeksov[indeksi[,2]]
+indeksi <- which(OG > 0, arr.ind = TRUE)
+lon_okuzenih <- lon_indeksov[indeksi[, 1]]
+lat_okuzenih <- lat_indeksov[indeksi[, 2]]
 
 
 newmap <- getMap(resolution = "high")
