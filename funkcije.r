@@ -1,3 +1,5 @@
+library(leaflet)
+
 #Zacetne nastavitve
 hx = 0.9 #longitude razdalja
 hy = 1 #latitude razdalja
@@ -125,25 +127,12 @@ naloziZivali <- function(datotekaPremikov, izpustiVrstice) {
     return(tabela[tabela$stevilo > 0,])
 }
 
-narisi <- function(lon, lat, cex, barva, googleMaps = FALSE) {
+narisi <- function(lon, lat, cex, barva) {
     ## zemljevid slovenije
-    lim <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
-    if (googleMaps) {
-      lonn <- c(min(lim$lon), max(lim$lon)) #define our map's ylim
-      latt <- c(min(lim$lat), max(lim$lat)) #define our map's xlim
-      #markers = paste0("&markers=color:blue|label:S|",latt[1],", ",lonn[1],"&markers=color:",
-      #                 "green|label:G|",latt[2],", ",lonn[2])
-      markers <- ""
-      center = c(geocode.cache("Celje")$lat, geocode.cache("Ljubljana")$lon)  #tell what point to center on
-      zoom <- 8 
-      #### Drobnica grafični prikaz, razmerje 1:50
-      terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "terrain")
-      PlotOnStaticMap(terrmap, lat, lon, cex=cex,pch=20,col=barva)
-    } else {
-      newmap <- getMap(resolution = "high")
-      plot(newmap, xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1)
-      points(lon, lat, pch=19, col=barva, cex = cex)
-    }
+    m <- leaflet() %>%
+    addTiles() %>%  # Add default OpenStreetMap map tiles
+    addCircleMarkers(lng=lon, lat=lat, radius=cex, color=barva)
+    m  # Print the map
 }
 
 

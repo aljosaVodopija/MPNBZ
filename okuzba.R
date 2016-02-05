@@ -1,11 +1,10 @@
 # Priprava ----------------------------------------------------------------
 
 # Po potrebi je treba namestiti pakete s spodnjim ukazom:
-# install.packages(c("RgoogleMaps", "rworldmap", "rworldxtra"))
+# install.packages("leaflet")
 
 # Naložimo knjižnice za delo z zemljevidi
-library(RgoogleMaps)
-library(rworldmap)
+library(leaflet)
 
 # Naložimo pomožne funkcije
 source("funkcije.r")
@@ -24,10 +23,9 @@ load("vmesni-podatki/prasici.RData")
 # Risanje zemljevidov -----------------------------------------------------
 
 # Če želimo, lahko s spodnjimi ukazi narišemo zemljevide gospodarstev
-# narisi(drobnica$lon, drobnica$lat, drobnica$gospodarstva / 200, "red")
-# narisi(drobnica$lon, drobnica$lat, drobnica$gospodarstva / 200, "red", googleMaps = TRUE)
-# narisi(prasici$lon, prasici$lat, prasici$gospodarstva / 700, "blue")
-# narisi(govedo$lon, govedo$lat, govedo$gospodarstva / 500, "green")
+narisi(drobnica$lon, drobnica$lat, sqrt(drobnica$gospodarstva), "red")
+narisi(prasici$lon, prasici$lat, sqrt(prasici$gospodarstva) / 3, "blue")
+narisi(govedo$lon, govedo$lat, sqrt(govedo$gospodarstva) / 2, "green")
 
 
 
