@@ -1,3 +1,4 @@
+library(ggmap)
 library(leaflet)
 
 #Zacetne nastavitve

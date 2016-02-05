@@ -1,7 +1,7 @@
 # Priprava ----------------------------------------------------------------
 
 # Po potrebi je treba namestiti pakete s spodnjim ukazom:
-# install.packages("leaflet")
+# install.packages(c("ggmap", "leaflet"))
 
 # Naložimo knjižnice za delo z zemljevidi
 library(leaflet)
