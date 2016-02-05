@@ -141,10 +141,9 @@ for(i in 1:stevilo.dni) {
 
 #################################################################
 ##################################################################
-indeksi_x <- which(okuzena_goveda > 0) %% dim(okuzena_goveda > 0)[1]
-indeksi_y <- which(okuzena_goveda > 0) %/% dim(okuzena_goveda > 0)[1]
-lon_okuzenih <- lon_indeksov[indeksi_x]
-lat_okuzenih <- lat_indeksov[indeksi_y]
+indeksi <- which(okuzena_goveda > 0, arr.ind = TRUE)
+lon_okuzenih <- lon_indeksov[indeksi[,1]]
+lat_okuzenih <- lat_indeksov[indeksi[,2]]
 
 
 newmap <- getMap(resolution = "high")
