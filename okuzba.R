@@ -24,12 +24,10 @@ load("vmesni-podatki/prasici.RData")
 # Risanje zemljevidov -----------------------------------------------------
 
 # Če želimo, lahko s spodnjimi ukazi narišemo zemljevide gospodarstev
-# narisi(drobnica, "red", 200)
-# shraniZemljevid(drobnica, "izhodni-podatki/drobnica.png", "red", 50)
-# narisi(prasici, "blue", 700)
-# shraniZemljevid(prasici, "izhodni-podatki/prasici.png", "blue", 250)
-# narisi(govedo, "green", 500)
-# shraniZemljevid(govedo, "izhodni-podatki/govedo.png", "purple", 150)
+# narisi(drobnica$lon, drobnica$lat, drobnica$gospodarstva / 200, "red")
+# narisi(drobnica$lon, drobnica$lat, drobnica$gospodarstva / 200, "red", googleMaps = TRUE)
+# narisi(prasici$lon, prasici$lat, prasici$gospodarstva / 700, "blue")
+# narisi(govedo$lon, govedo$lat, govedo$gospodarstva / 500, "green")
 
 
 
@@ -147,10 +145,4 @@ indeksi <- which(zgodovina.okuzb[,,stevilo.dni + 1] > 0, arr.ind = TRUE)
 lon_okuzenih <- lon_indeksov[indeksi[, 1]]
 lat_okuzenih <- lat_indeksov[indeksi[, 2]]
 
-newmap <- getMap(resolution = "high")
-europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
-plot(newmap,xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1, main = "POSKUS")
-points(lon_okuzenih, lat_okuzenih, pch=19, col="green", cex = 1)
-
-#################################################################
-##################################################################
+narisi(lon_okuzenih, lat_okuzenih, 0.3, "red", googleMaps = TRUE)

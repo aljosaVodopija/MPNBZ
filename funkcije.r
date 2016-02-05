@@ -125,31 +125,27 @@ naloziZivali <- function(datotekaPremikov, izpustiVrstice) {
     return(tabela)
 }
 
-narisi <- function(tabela, barva, faktor) {
+narisi <- function(lon, lat, cex, barva, googleMaps = FALSE) {
     ## zemljevid slovenije
-    newmap <- getMap(resolution = "high")
-    europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
-    plot(newmap, xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1)
-    points(tabela$lon, tabela$lat, pch=19, col=barva, cex = tabela$gospodarstva/faktor)
-
+    lim <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
+    if (googleMaps) {
+      lonn <- c(min(lim$lon), max(lim$lon)) #define our map's ylim
+      latt <- c(min(lim$lat), max(lim$lat)) #define our map's xlim
+      #markers = paste0("&markers=color:blue|label:S|",latt[1],", ",lonn[1],"&markers=color:",
+      #                 "green|label:G|",latt[2],", ",lonn[2])
+      markers <- ""
+      center = c(geocode.cache("Celje")$lat, geocode.cache("Ljubljana")$lon)  #tell what point to center on
+      zoom <- 8 
+      #### Drobnica grafični prikaz, razmerje 1:50
+      terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "terrain")
+      PlotOnStaticMap(terrmap, lat, lon, cex=cex,pch=20,col=barva)
+    } else {
+      newmap <- getMap(resolution = "high")
+      plot(newmap, xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1)
+      points(lon, lat, pch=19, col=barva, cex = cex)
+    }
 }
 
-shraniZemljevid <- function(tabela, imeDatoteke, barva, faktor) {
-    lim<- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
-
-    lonn <- c(min(lim$lon), max(lim$lon)) #define our map's ylim
-    latt <- c(min(lim$lat), max(lim$lat)) #define our map's xlim
-    #markers = paste0("&markers=color:blue|label:S|",latt[1],", ",lonn[1],"&markers=color:",
-    #                 "green|label:G|",latt[2],", ",lonn[2])
-    markers <- ""
-    center = c(geocode.cache("Celje")$lat, geocode.cache("Ljubljana")$lon)  #tell what point to center on
-    zoom <- 8 
-    #### Drobnica grafični prikaz, razmerje 1:50
-    try(terrmap <- GetMap(center=center, zoom=zoom, markers=markers,maptype= "roadmap"), silent=TRUE)
-    png(imeDatoteke, type='cairo-png')
-    tmp <- PlotOnStaticMap(terrmap, tabela$lat, tabela$lon, cex=tabela$gospodarstva/faktor,pch=20,col=barva)
-    dev.off()
-}
 
 nastaviVeter <- function (u, N, M) {
 
