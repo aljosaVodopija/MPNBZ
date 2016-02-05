@@ -122,7 +122,7 @@ naloziZivali <- function(datotekaPremikov, izpustiVrstice) {
 
     tabela <- data.frame(lon = lon, lat = lat, stevilo = stevilo, gospodarstva = gospodarstva)
     rownames(tabela) <- as.character(bum$bum)
-    return(tabela)
+    return(tabela[tabela$stevilo > 0,])
 }
 
 narisi <- function(lon, lat, cex, barva, googleMaps = FALSE) {
