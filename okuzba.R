@@ -110,7 +110,7 @@ c_3 = 0.001 ### gradient zdravih muh
 c_4 = 0.01#.001#0.001 ### divergenca
 c_5 = 10^(-6)#.05#0.1 ### laplace
 c_6 = 0.001 ### gradient okuzenih muh
-leto = 100### opazovalni cas okuzbe
+leto = 30### opazovalni cas okuzbe
 b = 0.9 ## verjetnost prenosa okužbe
 #######################################################
 

@@ -62,7 +62,7 @@ nastaviVreme <- function (podatkiVreme, stDni) {
   save(temperatura, file = "vmesni-podatki/temperatura.RData")
 }
 
-nastaviVreme("vhodni-podatki/20150530.nc", 1)
+nastaviVreme("vhodni-podatki/20150530.nc", 30)
 
 drobnica <- naloziZivali("vhodni-podatki/drobnica_stalez_3l.txt", 3)
 save(drobnica, file = 'vmesni-podatki/drobnica.RData')
