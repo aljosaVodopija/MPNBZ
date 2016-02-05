@@ -75,8 +75,8 @@ x <- 1/90   ### premik v smeri x osi
 y <- 1/120  ### premik v smeri y osi
 dimenzije <- c((D[1] - A[1]) / x + 1, (D[2] - A[2]) / y + 1)
 
-lon_indeksov <- (0:(dim[1]-1)) * x + A[1]
-lat_indeksov <- (0:(dim[2]-1)) * y + A[2]
+lon_indeksov <- (0:(dimenzije[1]-1)) * x + A[1]
+lat_indeksov <- (0:(dimenzije[2]-1)) * y + A[2]
 
 ##############################################
 
@@ -119,45 +119,38 @@ for(k in 1:length(govedo$lon)){
 
 #####################################################################3
 ############################## SISTEM DIF: ENAČB-PREPISI!!!! ##################
-
+zgodovina.okuzb <- array(NA, dim=c(dimenzije, stevilo.dni + 1))
+zgodovina.okuzb[,,1] <- okuzena_goveda
 for(i in 1:stevilo.dni) {
   # F = (X,Y) je vektorsko polje vetra
   X <- zonalniVeter[,,i] #zonalni veter v km/h (vzhod-zahod)
   Y <- meridionalniVeter[,,i] #meridionalni veter v km/h (jug-sever)
   T <- temperatura[,,i] # povprecna dnevna temperatura
-  ZM <- zdrave_muhe
-  OM <- okuzene_muhe
-  ZG <- zdrava_goveda
-  OG <- okuzena_goveda
 
   divergenca <- DIV(X,Y)
-  gradient_z <- GRADF(ZM, X,Y)
-  gradient_o <- GRADF(OM, X,Y)
-  laplace_z <- LAPLACE(ZM)
-  laplace_o <- LAPLACE(OM)
-  ZM <- ZM + gamma * ZM -  c_2 *st_muh * OG + c_3 * gradient_z + c_4*divergenca*ZM + c_5 *laplace_z
-  OM <- OM + c_2 * st_muh* OG + c_6* gradient_o + c_4*divergenca*OM + c_5 * laplace_o
-  ZM <- ZM * matrikaNicel
-  OM <- OM * matrikaNicel
+  gradient_z <- GRADF(zdrave_muhe, X,Y)
+  gradient_o <- GRADF(okuzene_muhe, X,Y)
+  laplace_z <- LAPLACE(zdrave_muhe)
+  laplace_o <- LAPLACE(okuzene_muhe)
+  zdrave_muhe <- zdrave_muhe + gamma * zdrave_muhe -  c_2 *st_muh * okuzena_goveda + c_3 * gradient_z + c_4*divergenca*zdrave_muhe + c_5 *laplace_z
+  okuzene_muhe <- okuzene_muhe + c_2 * st_muh* okuzena_goveda + c_6* gradient_o + c_4*divergenca*okuzene_muhe + c_5 * laplace_o
+  zdrave_muhe <- zdrave_muhe * matrikaNicel
+  okuzene_muhe <- okuzene_muhe * matrikaNicel
   
-  ZG <- ZG - (c_2 / st_muh) * OM
-  OG <- OG + (c_2 / st_muh) * OM
+  zdrava_goveda <- zdrava_goveda - (c_2 / st_muh) * okuzene_muhe
+  okuzena_goveda <- okuzena_goveda + (c_2 / st_muh) * okuzene_muhe
 
-  zdrave_muhe <- ZM
-  okuzene_muhe <- OM
-  zdrava_goveda <- ZG
-  okuzena_goveda <- OG
+  zgodovina.okuzb[,,i + 1] <- okuzena_goveda
 }
 
-#################################################################
-##################################################################
-indeksi <- which(OG > 0, arr.ind = TRUE)
+indeksi <- which(zgodovina.okuzb[,,stevilo.dni + 1] > 0, arr.ind = TRUE)
 lon_okuzenih <- lon_indeksov[indeksi[, 1]]
 lat_okuzenih <- lat_indeksov[indeksi[, 2]]
 
-
 newmap <- getMap(resolution = "high")
 europe.limits <- geocode.cache(c("Salovci", "Črnomelj", "Lendava", "Kobarid", "Bovec", "Trst"))
-
 plot(newmap,xlim= range(europe.limits$lon), ylim= range(europe.limits$lat), asp = 1, main = "POSKUS")
 points(lon_okuzenih, lat_okuzenih, pch=19, col="green", cex = 1)
+
+#################################################################
+##################################################################
