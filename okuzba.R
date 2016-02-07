@@ -143,4 +143,4 @@ indeksi <- which(zgodovina.okuzb[,,stevilo.dni + 1] > 0, arr.ind = TRUE)
 lon_okuzenih <- lon_indeksov[indeksi[, 1]]
 lat_okuzenih <- lat_indeksov[indeksi[, 2]]
 
-narisi(lon_okuzenih, lat_okuzenih, 0.3, "red", googleMaps = TRUE)
+narisi(lon_okuzenih, lat_okuzenih, 0.3, "red")
