@@ -234,9 +234,11 @@ server <- function(input, output, session) {
   })
   
   observe({
-    leafletProxy("map", data = filteredData()) %>%
-      removeShape("bla") %>%
-      addCircles(layerId = "bla", radius=1, color="red",opacity=1, fillOpacity = 0.9, fillColor="red")
+    data <- filteredData()
+    map <- leafletProxy("map", data = data)
+    map %>% clearShapes()
+    if(nrow(data) > 0)
+      map %>% addCircles(radius=1, color="red",opacity=1, fillOpacity = 0.9, fillColor="red")
   })
 }
 
