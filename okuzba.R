@@ -61,22 +61,53 @@ indeks2koord <- function(indeks) {
   return(list(lon = lon_indeksov[indeks[1]], lat = lat_indeksov[indeks[2]]))
 }
 
+popravi.rob <- function(matrika) {
+  matrika[1,] = matrika[2,]
+  matrika[nrow(matrika),] = matrika[nrow(matrika) - 1,]
+  matrika[,1] = matrika[,2]
+  matrika[, ncol(matrika)] = matrika[, ncol(matrika) - 1]
+  return(matrika)
+}
+
+levo <- function(matrika) {
+  matrika[,-1] <- matrika[,-ncol(matrika)]
+  return(matrika)
+}
+
+desno <- function(matrika) {
+  matrika[,-ncol(matrika)] <- matrika[,-1]
+  return(matrika)
+}
+
+zgoraj <- function(matrika) {
+  matrika[-1,] <- matrika[-nrow(matrika),]
+  return(matrika)
+}
+
+spodaj <- function(matrika) {
+  matrika[-nrow(matrika),] <- matrika[-1,]
+  return(matrika)
+}
+
+preseli.muhe <- function(muhe, veter.x, veter.y, dt) {
+  muhe <- muhe + dt * (
+    (veter.x + levo(veter.x)) / 2 * (muhe + levo(muhe)) / 2
+    - (veter.x + desno(veter.x)) / 2 * (muhe + desno(muhe)) / 2
+    + (veter.y + spodaj(veter.y)) / 2 * (muhe + spodaj(muhe)) / 2
+    - (veter.y + zgoraj(veter.y)) / 2 * (muhe + zgoraj(muhe)) / 2
+  )
+  return(muhe)
+}
 ################################################
 
 # Dinamični del -----------------------------------------------------------
 
-simuliraj <- function (kraji_okuzbe = c("Koper"), stevilo_okuzenih = 200, st_muh=900, gamma=0, c_2=1, c_3=0.001, c_4 = 0.01, c_5 = 10^(-6), c_6 = 0.001,
-                       stevilo.dni = 30, b = 0.9) {
+simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st_muh=900, gamma0=0.5, prenos.govedo.na.muho=1,
+                       stevilo.dni = 30, prenos.muha.na.govedo = 0.9) {
 #   ############ Parametri #######################
 #   st_muh <- 900 ## stevilo muh na eno žival
 #   gamma <- 0 ### stopnja natalitete muh
-#   c_2 = 1 # verjetnost prenosa z okuženega goveda na zdravo muho 
-#   c_3 = 0.001 ### gradient zdravih muh
-#   c_4 = 0.01#.001#0.001 ### divergenca
-#   c_5 = 10^(-6)#.05#0.1 ### laplace
-#   c_6 = 0.001 ### gradient okuzenih muh
 #   stevilo.dni = 30### opazovalni cas okuzbe
-#   b = 0.9 ## verjetnost prenosa okužbe
 #   
 #   #######################################################
 #   # če je več izbruhov, kopiramo tale del kode ###
@@ -87,27 +118,25 @@ simuliraj <- function (kraji_okuzbe = c("Koper"), stevilo_okuzenih = 200, st_muh
 #   
 #   ########### Paramerer-stevilo okuzenih ##############
 #   stevilo_okuzenih <- 200 ### stevilo okuzenih na dani lokaciji
-
   zdrave_muhe <- array(0, dim=dimenzije)
   okuzene_muhe <- array(0, dim=dimenzije)
   zdrava_goveda <- array(0, dim=dimenzije)
   okuzena_goveda <- array(0, dim=dimenzije)
   
+  ### Govedo #### 
+  for(k in 1:length(govedo$lon)){
+    indeks = koord2indeks(govedo[k, ])
+    zdrava_goveda[indeks] <- zdrava_goveda[indeks] + govedo$stevilo[k]
+  }
   ####################################################
   for(kraj in kraji_okuzbe) {
     mesto_okuzbe = geocode.cache(kraj)
-    okuzena_goveda[koord2indeks(mesto_okuzbe)] <- stevilo_okuzenih
+    indeks = koord2indeks(mesto_okuzbe)
+    zdrava_goveda[indeks] <- zdrava_goveda[indeks] - stevilo_okuzenih
+    okuzena_goveda[indeks] <- stevilo_okuzenih
   }
   #################################################
-  
-  
-  ### Govedo #### 
-  okuzene_muhe <- (okuzena_goveda * st_muh) / b
-  for(k in 1:length(govedo$lon)){
-    indeks = koord2indeks(govedo[k, ])
-    zdrava_goveda[indeks] <- govedo$stevilo[k] / b
-    zdrave_muhe[indeks] <- govedo$stevilo[k] * st_muh / b
-  }
+  zdrave_muhe <- (okuzena_goveda + zdrava_goveda) * st_muh
   
   
   
@@ -117,25 +146,46 @@ simuliraj <- function (kraji_okuzbe = c("Koper"), stevilo_okuzenih = 200, st_muh
   zgodovina.okuzb <- array(NA, dim=c(dimenzije, stevilo.dni + 1))
   zgodovina.okuzb[,,1] <- okuzena_goveda
   for(i in 1:stevilo.dni) {
-    # F = (X,Y) je vektorsko polje vetra
-    X <- zonalniVeter[,,i] #zonalni veter v km/h (vzhod-zahod)
-    Y <- meridionalniVeter[,,i] #meridionalni veter v km/h (jug-sever)
-    T <- temperatura[,,i] # povprecna dnevna temperatura
-  
-    divergenca <- DIV(X,Y)
-    gradient_z <- GRADF(zdrave_muhe, X,Y)
-    gradient_o <- GRADF(okuzene_muhe, X,Y)
-    laplace_z <- LAPLACE(zdrave_muhe)
-    laplace_o <- LAPLACE(okuzene_muhe)
-    zdrave_muhe <- zdrave_muhe + gamma * zdrave_muhe -  c_2 *st_muh * okuzena_goveda + c_3 * gradient_z + c_4*divergenca*zdrave_muhe + c_5 *laplace_z
-    okuzene_muhe <- okuzene_muhe + c_2 * st_muh* okuzena_goveda + c_6* gradient_o + c_4*divergenca*okuzene_muhe + c_5 * laplace_o
+    # zonalni veter v km/h v smeri zahod-vzhod (pozitivna vrednost pomeni pihanje od zahoda proti vzhodu)
+    # prvotni podatki so v smeri vzhod-zahod, zato matriko negiramo
+    # TODO: preveri, ali so prvotni podatki res v smeri vzhod-zahod
+    veter.x <- -zonalniVeter[,,i]
+    # meridionalni veter v km/h v smeri jug-sever (pozitivna vrednost pomeni pihanje od juga proti severu)
+    veter.y <- meridionalniVeter[,,i]
+    # povprečna dnevna temperatura v stopinjah Celzija
+    T <- temperatura[,,i]
+
+    # TODO: gamma je v resnici odvisna od temperature
+    gamma <- gamma0 # * sin(i / stevilo.dni * 2 * pi)
+    
+    novo_okuzene_muhe <- round(prenos.govedo.na.muho * zdrave_muhe * okuzena_goveda / (zdrava_goveda + okuzena_goveda))
+    novo_okuzene_muhe[zdrava_goveda + okuzena_goveda == 0] <- 0
+    novo_okuzena_goveda <- round(prenos.muha.na.govedo * zdrava_goveda * okuzene_muhe / (zdrave_muhe + okuzene_muhe))
+    novo_okuzena_goveda[zdrave_muhe + okuzene_muhe == 0] <- 0
+    
+    zdrave_muhe <- zdrave_muhe + gamma * zdrave_muhe - novo_okuzene_muhe
+    okuzene_muhe <- okuzene_muhe + gamma * okuzene_muhe + novo_okuzene_muhe
+
+    stevilo.selitev <- 1
+    for(i in 1:stevilo.selitev) {
+      dt <- 24 / stevilo.selitev
+      zdrave_muhe <- preseli.muhe(zdrave_muhe, veter.x, veter.y, dt)
+      okuzene_muhe <- preseli.muhe(okuzene_muhe, veter.x, veter.y, dt)
+    }
     zdrave_muhe <- zdrave_muhe * matrikaNicel
     okuzene_muhe <- okuzene_muhe * matrikaNicel
+
+    zdrava_goveda <- zdrava_goveda - novo_okuzena_goveda
+    okuzena_goveda <- okuzena_goveda + novo_okuzena_goveda
+
+    #stopifnot(any(zdrave_muhe < 0))
+    #stopifnot(any(okuzene_muhe < 0))
+    #stopifnot(any(zdrava_goveda < 0))
+    #stopifnot(any(okuzena_goveda < 0))
     
-    zdrava_goveda <- zdrava_goveda - (c_2 / st_muh) * okuzene_muhe
-    okuzena_goveda <- okuzena_goveda + (c_2 / st_muh) * okuzene_muhe
-  
-    zgodovina.okuzb[,,i + 1] <- okuzena_goveda
+    zgodovina.okuzb[,,i + 1] <- okuzene_muhe
+    zdrava_goveda <- levo(zdrava_goveda)
+    #print(sum(okuzene_muhe))
   }
   return(zgodovina.okuzb)
 }
@@ -161,10 +211,20 @@ ui <- bootstrapPage(
 )
 
 server <- function(input, output, session) {
-  podatki <- reactive({simuliraj(b = input$b, c_2 = input$c2)})
+  podatki <- reactive({
+    print("Simuliram")
+    simuliraj(
+      prenos.muha.na.govedo = input$b,
+      prenos.govedo.na.muho = input$c2,
+      kraji_okuzbe=c("Metlika", "Koper", "Ptuj")
+    )
+  })
 
   filteredData <- reactive({
-    which(podatki()[,,input$dan] > 0, arr.ind = TRUE)
+    indeksi.okuzenih <- which(podatki()[,,input$dan] > 0, arr.ind = TRUE)
+    lon_okuzenih <- lon_indeksov[indeksi.okuzenih[, 1]]
+    lat_okuzenih <- lat_indeksov[indeksi.okuzenih[, 2]]
+    data.frame(lat = lat_okuzenih, lon = lon_okuzenih)
   })
   
   output$map <- renderLeaflet({
@@ -174,13 +234,9 @@ server <- function(input, output, session) {
   })
   
   observe({
-    indeksi.okuzenih <- filteredData()
-    lon_okuzenih <- lon_indeksov[indeksi.okuzenih[, 1]]
-    lat_okuzenih <- lat_indeksov[indeksi.okuzenih[, 2]]
-    
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addCircleMarkers(lng=lon_okuzenih, lat=lat_okuzenih, radius=1, color="red",opacity=1, fillOpacity = 0.9, fillColor="red")
+    leafletProxy("map", data = filteredData()) %>%
+      removeShape("bla") %>%
+      addCircles(layerId = "bla", radius=1, color="red",opacity=1, fillOpacity = 0.9, fillColor="red")
   })
 }
 
