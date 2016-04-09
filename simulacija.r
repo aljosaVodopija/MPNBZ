@@ -1,30 +1,28 @@
-
-
 popravi.rob <- function(matrika) {
-  matrika[1,] = matrika[2,]
-  matrika[nrow(matrika),] = matrika[nrow(matrika) - 1,]
-  matrika[,1] = matrika[,2]
+  matrika[1, ] = matrika[2, ]
+  matrika[nrow(matrika), ] = matrika[nrow(matrika) - 1, ]
+  matrika[, 1] = matrika[, 2]
   matrika[, ncol(matrika)] = matrika[, ncol(matrika) - 1]
   return(matrika)
 }
 
 levo <- function(matrika) {
-  matrika[,-1] <- matrika[,-ncol(matrika)]
+  matrika[, -1] <- matrika[, -ncol(matrika)]
   return(matrika)
 }
 
 desno <- function(matrika) {
-  matrika[,-ncol(matrika)] <- matrika[,-1]
+  matrika[, -ncol(matrika)] <- matrika[, -1]
   return(matrika)
 }
 
 zgoraj <- function(matrika) {
-  matrika[-1,] <- matrika[-nrow(matrika),]
+  matrika[-1, ] <- matrika[-nrow(matrika), ]
   return(matrika)
 }
 
 spodaj <- function(matrika) {
-  matrika[-nrow(matrika),] <- matrika[-1,]
+  matrika[-nrow(matrika), ] <- matrika[-1, ]
   return(matrika)
 }
 
@@ -41,88 +39,85 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt) {
 
 # Dinamični del -----------------------------------------------------------
 
-simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st_muh=900, gamma0=0.5, prenos.govedo.na.muho=1,
-                       stevilo.dni = 30, prenos.muha.na.govedo = 0.9) {
-#   ############ Parametri #######################
-#   st_muh <- 900 ## stevilo muh na eno žival
-#   gamma <- 0 ### stopnja natalitete muh
-#   stevilo.dni = 30### opazovalni cas okuzbe
-#   
-#   #######################################################
-#   # če je več izbruhov, kopiramo tale del kode ###
-#   ######################################################
-#   ### Parametra naj bi bil mesto okuzbe - npr: Grosuplje
-#   #####################################################
-#   kraji_okuzbe <- c("Koper") ### lokacija, na kateri nastane okužba
-#   
-#   ########### Paramerer-stevilo okuzenih ##############
-#   stevilo_okuzenih <- 200 ### stevilo okuzenih na dani lokaciji
-  zdrave_muhe <- array(0, dim=dimenzije)
-  okuzene_muhe <- array(0, dim=dimenzije)
-  zdrava_goveda <- array(0, dim=dimenzije)
-  okuzena_goveda <- array(0, dim=dimenzije)
-  
-  ### Govedo #### 
-  for(k in 1:length(govedo$lon)){
-    indeks = koord2indeks(govedo[k, ])
-    zdrava_goveda[indeks] <- zdrava_goveda[indeks] + govedo$stevilo[k]
-  }
-  ####################################################
-  for(kraj in kraji_okuzbe) {
-    mesto_okuzbe = geocode.cache(kraj)
-    indeks = koord2indeks(mesto_okuzbe)
-    zdrava_goveda[indeks] <- zdrava_goveda[indeks] - stevilo_okuzenih
-    okuzena_goveda[indeks] <- stevilo_okuzenih
-  }
-  #################################################
-  zdrave_muhe <- (okuzena_goveda + zdrava_goveda) * st_muh
-
-  
-  
-  #####################################################################3
-  ############################## SISTEM DIF: ENAČB-PREPISI!!!! ##################
-  zgodovina.okuzb <- array(NA, dim=c(dimenzije, stevilo.dni + 1))
-  zgodovina.okuzb[,,1] <- okuzena_goveda
-  for(i in 1:stevilo.dni) {
-    # zonalni veter v km/h v smeri zahod-vzhod (pozitivna vrednost pomeni pihanje od zahoda proti vzhodu)
-    # prvotni podatki so v smeri vzhod-zahod, zato matriko negiramo
-    # TODO: preveri, ali so prvotni podatki res v smeri vzhod-zahod
-    veter.x <- -t(zonalniVeter[,,i])
-    # meridionalni veter v km/h v smeri jug-sever (pozitivna vrednost pomeni pihanje od juga proti severu)
-    veter.y <- t(meridionalniVeter[,,i])
-    # povprečna dnevna temperatura v stopinjah Celzija
-    T <- t(temperatura[,,i])
-
-    # TODO: gamma je v resnici odvisna od temperature
-    gamma <- gamma0 # * sin(i / stevilo.dni * 2 * pi)
-    novo_okuzene_muhe <- round(prenos.govedo.na.muho * zdrave_muhe * okuzena_goveda / (zdrava_goveda + okuzena_goveda))
-    novo_okuzene_muhe[zdrava_goveda + okuzena_goveda == 0] <- 0
-    novo_okuzena_goveda <- round(prenos.muha.na.govedo * zdrava_goveda * okuzene_muhe / (zdrave_muhe + okuzene_muhe))
-    novo_okuzena_goveda[zdrave_muhe + okuzene_muhe == 0] <- 0
+simuliraj <-
+  function (kraji.okuzbe = c("Grosuplje"),
+            stevilo.okuzenih = 200,
+            stevilo.muh.na.govedo = 900,
+            nataliteta.muh = 0.5,
+            prenos.govedo.na.muho = 1,
+            opazovalni.cas.okuzbe = 30,
+            prenos.muha.na.govedo = 0.9) {
+    zdrave.muhe <- array(0, dim = dimenzije)
+    okuzene.muhe <- array(0, dim = dimenzije)
+    zdrava.goveda <- array(0, dim = dimenzije)
+    okuzena.goveda <- array(0, dim = dimenzije)
     
-    zdrave_muhe <- zdrave_muhe + gamma * zdrave_muhe - novo_okuzene_muhe
-    okuzene_muhe <- okuzene_muhe + gamma * okuzene_muhe + novo_okuzene_muhe
-
-    stevilo.selitev <- 1
-    for(i in 1:stevilo.selitev) {
-      dt <- 24 / stevilo.selitev
-      zdrave_muhe <- preseli.muhe(zdrave_muhe, veter.x, veter.y, dt)
-      okuzene_muhe <- preseli.muhe(okuzene_muhe, veter.x, veter.y, dt)
+    ### Govedo ####
+    for (k in 1:length(govedo$lon)) {
+      indeks = koord2indeks(govedo[k,])
+      zdrava.goveda[indeks] <-
+        zdrava.goveda[indeks] + govedo$stevilo[k]
     }
-    zdrave_muhe <- zdrave_muhe * t(matrikaNicel)
-    okuzene_muhe <- okuzene_muhe * t(matrikaNicel)
-
-    zdrava_goveda <- zdrava_goveda - novo_okuzena_goveda
-    okuzena_goveda <- okuzena_goveda + novo_okuzena_goveda
-
-    #stopifnot(any(zdrave_muhe < 0))
-    #stopifnot(any(okuzene_muhe < 0))
-    #stopifnot(any(zdrava_goveda < 0))
-    #stopifnot(any(okuzena_goveda < 0))
+    ####################################################
+    for (kraj in kraji.okuzbe) {
+      indeks = koord2indeks(geocode.cache(kraj))
+      zdrava.goveda[indeks] <-
+        zdrava.goveda[indeks] - stevilo.okuzenih
+      okuzena.goveda[indeks] <- stevilo.okuzenih
+    }
+    #################################################
+    zdrave.muhe <-
+      (okuzena.goveda + zdrava.goveda) * stevilo.muh.na.govedo
     
-    zgodovina.okuzb[,,i + 1] <- okuzena_goveda
-    zdrava_goveda <- levo(zdrava_goveda)
-    #print(sum(okuzene_muhe))
+    #####################################################################3
+    ############################## SISTEM DIF: ENAČB-PREPISI!!!! ##################
+    zgodovina.okuzb <-
+      array(NA, dim = c(dimenzije, opazovalni.cas.okuzbe + 1))
+    zgodovina.okuzb[, , 1] <- okuzena.goveda
+    for (i in 1:opazovalni.cas.okuzbe) {
+      # zonalni veter v km/h v smeri zahod-vzhod (pozitivna vrednost pomeni pihanje od zahoda proti vzhodu)
+      # prvotni podatki so v smeri vzhod-zahod, zato matriko negiramo
+      # TODO: preveri, ali so prvotni podatki res v smeri vzhod-zahod
+      veter.x <- -t(zonalniVeter[, , i])
+      # meridionalni veter v km/h v smeri jug-sever (pozitivna vrednost pomeni pihanje od juga proti severu)
+      veter.y <- t(meridionalniVeter[, , i])
+      # povprečna dnevna temperatura v stopinjah Celzija
+      T <- t(temperatura[, , i])
+      
+      # TODO: gamma je v resnici odvisna od temperature
+      gamma <-
+        nataliteta.muh # * sin(i / opazovalni.cas.okuzbe * 2 * pi)
+      novo.okuzene.muhe <-
+        round(
+          prenos.govedo.na.muho * zdrave.muhe * okuzena.goveda / (zdrava.goveda + okuzena.goveda)
+        )
+      novo.okuzene.muhe[zdrava.goveda + okuzena.goveda == 0] <- 0
+      novo.okuzena.goveda <-
+        round(
+          prenos.muha.na.govedo * zdrava.goveda * okuzene.muhe / (zdrave.muhe + okuzene.muhe)
+        )
+      novo.okuzena.goveda[zdrave.muhe + okuzene.muhe == 0] <- 0
+      
+      zdrave.muhe <-
+        zdrave.muhe + gamma * zdrave.muhe - novo.okuzene.muhe
+      okuzene.muhe <-
+        okuzene.muhe + gamma * okuzene.muhe + novo.okuzene.muhe
+      
+      stevilo.selitev <- 1
+      for (i in 1:stevilo.selitev) {
+        dt <- 24 / stevilo.selitev
+        zdrave.muhe <- preseli.muhe(zdrave.muhe, veter.x, veter.y, dt)
+        okuzene.muhe <-
+          preseli.muhe(okuzene.muhe, veter.x, veter.y, dt)
+      }
+      zdrave.muhe <- zdrave.muhe * t(matrikaNicel)
+      okuzene.muhe <- okuzene.muhe * t(matrikaNicel)
+      
+      zdrava.goveda <- zdrava.goveda - novo.okuzena.goveda
+      okuzena.goveda <- okuzena.goveda + novo.okuzena.goveda
+      
+      zgodovina.okuzb[, , i + 1] <- okuzena.goveda
+      zdrava.goveda <- levo(zdrava.goveda)
+    }
+    return(zgodovina.okuzb)
   }
-  return(zgodovina.okuzb)
-}

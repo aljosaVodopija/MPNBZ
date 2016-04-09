@@ -75,7 +75,7 @@ server <- function(input, output, session) {
     simuliraj(
       prenos.muha.na.govedo = input$prenos.muha.na.govedo,
       prenos.govedo.na.muho = input$prenos.govedo.na.muho,
-      kraji_okuzbe = c("Metlika", "Koper", "Ptuj")
+      kraji.okuzbe = c("Metlika", "Koper", "Ptuj")
     )
   })
   
