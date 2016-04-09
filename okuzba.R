@@ -17,8 +17,6 @@ load("vmesni-podatki/meridionalniVeter.RData")
 load("vmesni-podatki/temperatura.RData")
 load("vmesni-podatki/matrikaNicel.RData")
 load("vmesni-podatki/goveda.RData")
-load("vmesni-podatki/drobnica.RData")
-load("vmesni-podatki/prasici.RData")
 
 
 # Risanje zemljevidov -----------------------------------------------------
@@ -48,15 +46,6 @@ razpredelnica.v.matriko <- function(razpredelnica) {
   }
   return(matrika)
 }
-
-matrika.v.razpredelnico <- function(matrika) {
-  return(data.frame(
-    lon = as.vector(x.lim[1] + (col(matrika) - 1 / 2) * dx),
-    lat = as.vector(y.lim[2] - (row(matrika) - 1 / 2) * dy),
-    mag = as.vector(matrika)
-  ))
-}
-
 
 #####################################
 
