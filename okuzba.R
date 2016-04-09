@@ -9,7 +9,6 @@ library(leaflet)
 library(RColorBrewer)
 library(raster)
 
-
 # Naložimo vnaprej izračunane podatke. Če jih ni, moramo najprej pognati
 # program "predpriprava.r"
 load("vmesni-podatki/zonalniVeter.RData")
@@ -22,6 +21,7 @@ load("vmesni-podatki/goveda.RData")
 source("funkcije.r")
 source("simulacija.r")
 
+
 # Risanje zemljevidov -----------------------------------------------------
 
 # Če želimo, lahko s spodnjimi ukazi narišemo zemljevide gospodarstev
@@ -30,80 +30,103 @@ source("simulacija.r")
 # narisi(govedo$lon, govedo$lat, sqrt(govedo$gospodarstva) / 2, "green")
 
 
-#####################################
-
-
-############################################
-############ dinamicen del #################
-
-
-##############################################
+# Interaktivni vmesnik ----------------------------------------------------
 
 ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body { width: 100%; height: 100% }"),
-  leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 10, right = 10,
-                sliderInput("dan", "Dan", 1, 31,
-                            value = 1, step = 1
-                ),
-                sliderInput("prenos.muha.na.govedo", "Verjetnost prenosa okužbe muha=>govedo", 0, 1,
-                            value = 0.9, step = 0.05
-                ),
-                selectInput("colors", "Color Scheme",
-                            rownames(subset(brewer.pal.info, category %in% c("seq", "div")))
-                ),
-                sliderInput("prenos.govedo.na.muho", "Verjetnost prenosa okužbe govedo=>muha", 0, 1,
-                            value = 1, step = 0.05
-                )
+  leafletOutput(
+    outputId = "map",
+    width = "100%",
+    height = "100%"
+  ),
+  absolutePanel(
+    sliderInput(
+      inputId = "dan",
+      label = "Dan",
+      min = 1,
+      max = 31,
+      value = 1,
+      step = 1
+    ),
+    sliderInput(
+      inputId = "prenos.muha.na.govedo",
+      label = "Verjetnost prenosa okužbe muha=>govedo",
+      min = 0,
+      max = 1,
+      value = 0.9,
+      step = 0.05
+    ),
+    sliderInput(
+      inputId = "prenos.govedo.na.muho",
+      label = "Verjetnost prenosa okužbe govedo=>muha",
+      min = 0,
+      max = 1,
+      value = 1,
+      step = 0.05
+    ),
+    top = 10,
+    right = 10
   )
 )
 
 server <- function(input, output, session) {
+  # Rezultati simulacije
   podatki <- reactive({
-    pod <- simuliraj(
+    simuliraj(
       prenos.muha.na.govedo = input$prenos.muha.na.govedo,
       prenos.govedo.na.muho = input$prenos.govedo.na.muho,
-      kraji_okuzbe=c("Metlika", "Koper", "Ptuj")
+      kraji_okuzbe = c("Metlika", "Koper", "Ptuj")
     )
-    pod
-  })
-
-  filteredData <- reactive({
-    podatki()[,,input$dan]
   })
   
-  # This reactive expression represents the palette function,
-  # which changes as the user makes selections in UI.
-  colorpal <- reactive({
-    colorNumeric(input$colors, filteredData())
+  # Podatki dneva
+  podatki.dneva <- reactive({
+    podatki()[, , input$dan]
   })
-
+  
+  # Barvna paleta
+  paleta <- reactive({
+    colorNumeric("Reds", podatki.dneva())
+  })
+  
+  # Osnovni zemljevid
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
-      fitBounds(x.lim[1], y.lim[1], x.lim[2], y.lim[2])
+      fitBounds(
+        lng1 = x.lim[1],
+        lat1 = y.lim[1],
+        lng2 = x.lim[2],
+        lat2 = y.lim[2]
+      )
   })
   
+  # Raster
   observe({
-    data <- filteredData()
-    map <- leafletProxy("map")
-    r <- raster(data, xmn=x.lim[1], xmx=x.lim[2], ymn=y.lim[1], ymx=y.lim[2])
-    crs(r) <- CRS("+init=epsg:4326")
-    map %>% clearGroup("rastko")
-    map %>% addRasterImage(r, opacity = 0.7, colors=colorpal(), group = "rastko")
-  })
-
-# Use a separate observer to recreate the legend as needed.
-  observe({
-    data <- filteredData()
-    proxy <- leafletProxy("map")
-#
-#     # Remove any existing legend, and only if the legend is
-#     # enabled, create a new one.
-    proxy %>% clearControls()
-      proxy %>% addLegend(position = "bottomright",
-                          pal = colorpal(), values = data
+    leafletProxy("map") %>%
+      clearGroup("raster") %>%
+      addRasterImage(
+        raster(
+          podatki.dneva(),
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta(),
+        opacity = 0.7,
+        group = "raster"
       )
+  })
+  
+  # Legenda
+  observe({
+    leafletProxy("map") %>%
+      clearControls() %>%
+      addLegend(position = "bottomright",
+                pal = paleta(),
+                values = podatki.dneva())
   })
 }
 
