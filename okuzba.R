@@ -5,6 +5,7 @@
 
 # Naložimo knjižnice za delo z zemljevidi
 library(leaflet)
+library(RColorBrewer)
 
 # Naložimo pomožne funkcije
 source("funkcije.r")
@@ -27,7 +28,34 @@ narisi(drobnica$lon, drobnica$lat, sqrt(drobnica$gospodarstva), "red")
 narisi(prasici$lon, prasici$lat, sqrt(prasici$gospodarstva) / 3, "blue")
 narisi(govedo$lon, govedo$lat, sqrt(govedo$gospodarstva) / 2, "green")
 
+x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
+y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
+dx <- 1 / 90
+dy <- 1 / 120
+st.vrstic <- round((y.lim[2] - y.lim[1]) / dy)
+st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx)
+dimenzije <- c(st.vrstic + 1, st.stolpcev + 1)
 
+
+razpredelnica.v.matriko <- function(razpredelnica) {
+  matrika <- matrix(0, nrow = st.vrstic, ncol = st.stolpcev)
+  for(indeks.vnosa in 1:nrow(razpredelnica)) {
+    vnos <- razpredelnica[indeks.vnosa, ]
+    stolpec <- round((vnos$lon - x.lim[1]) / dx + 1 / 2)
+    vrstica <- round((y.lim[2] - vnos$lat) / dy + 1 / 2)
+    if(1 <= vrstica && vrstica <= st.vrstic && 1 <= stolpec && stolpec <= st.stolpcev)
+      matrika[vrstica, stolpec] <- matrika[vrstica, stolpec] + vnos$mag
+  }
+  return(matrika)
+}
+
+matrika.v.razpredelnico <- function(matrika) {
+  return(data.frame(
+    lon = as.vector(x.lim[1] + (col(matrika) - 1 / 2) * dx),
+    lat = as.vector(y.lim[2] - (row(matrika) - 1 / 2) * dy),
+    mag = as.vector(matrika)
+  ))
+}
 
 
 #####################################
@@ -38,27 +66,12 @@ narisi(govedo$lon, govedo$lat, sqrt(govedo$gospodarstva) / 2, "green")
 ############ dinamicen del #################
 
 
-A = c(13.5-1/90, (45.20+(1/30))-(1.5/120)) ## spodnje levo oglišče pravokotnika v katerega spravimo Slovenijo
-
-D = c(16.5+1/90, 47+(1.5/120)) ## zgornje desno oglišče pravokotnika v katerega spravimo Slovenijo
-
-x <- 1/90   ### premik v smeri x osi
-y <- 1/120  ### premik v smeri y osi
-dimenzije <- c((D[1] - A[1]) / x + 1, (D[2] - A[2]) / y + 1)
-
-lon_indeksov <- (0:(dimenzije[1]-1)) * x + A[1]
-lat_indeksov <- (0:(dimenzije[2]-1)) * y + A[2]
-
 ##############################################
 
-koord2indeks <- function(koordinate) {
-  x_indeks <- which.min(abs(lon_indeksov - koordinate$lon))
-  y_indeks <- which.min(abs(lat_indeksov - koordinate$lat))
-  return(matrix(c(x_indeks, y_indeks), ncol = 2))
-}
-
-indeks2koord <- function(indeks) {
-  return(list(lon = lon_indeksov[indeks[1]], lat = lat_indeksov[indeks[2]]))
+koord2indeks <- function(vnos) {
+  stolpec <- round((vnos$lon - x.lim[1]) / dx + 1 / 2)
+  vrstica <- round((y.lim[2] - vnos$lat) / dy + 1 / 2)
+  return(matrix(c(vrstica, stolpec), ncol = 2))
 }
 
 popravi.rob <- function(matrika) {
@@ -137,8 +150,7 @@ simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st
   }
   #################################################
   zdrave_muhe <- (okuzena_goveda + zdrava_goveda) * st_muh
-  
-  
+
   
   
   #####################################################################3
@@ -149,15 +161,14 @@ simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st
     # zonalni veter v km/h v smeri zahod-vzhod (pozitivna vrednost pomeni pihanje od zahoda proti vzhodu)
     # prvotni podatki so v smeri vzhod-zahod, zato matriko negiramo
     # TODO: preveri, ali so prvotni podatki res v smeri vzhod-zahod
-    veter.x <- -zonalniVeter[,,i]
+    veter.x <- -t(zonalniVeter[,,i])
     # meridionalni veter v km/h v smeri jug-sever (pozitivna vrednost pomeni pihanje od juga proti severu)
-    veter.y <- meridionalniVeter[,,i]
+    veter.y <- t(meridionalniVeter[,,i])
     # povprečna dnevna temperatura v stopinjah Celzija
-    T <- temperatura[,,i]
+    T <- t(temperatura[,,i])
 
     # TODO: gamma je v resnici odvisna od temperature
     gamma <- gamma0 # * sin(i / stevilo.dni * 2 * pi)
-    
     novo_okuzene_muhe <- round(prenos.govedo.na.muho * zdrave_muhe * okuzena_goveda / (zdrava_goveda + okuzena_goveda))
     novo_okuzene_muhe[zdrava_goveda + okuzena_goveda == 0] <- 0
     novo_okuzena_goveda <- round(prenos.muha.na.govedo * zdrava_goveda * okuzene_muhe / (zdrave_muhe + okuzene_muhe))
@@ -172,8 +183,8 @@ simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st
       zdrave_muhe <- preseli.muhe(zdrave_muhe, veter.x, veter.y, dt)
       okuzene_muhe <- preseli.muhe(okuzene_muhe, veter.x, veter.y, dt)
     }
-    zdrave_muhe <- zdrave_muhe * matrikaNicel
-    okuzene_muhe <- okuzene_muhe * matrikaNicel
+    zdrave_muhe <- zdrave_muhe * t(matrikaNicel)
+    okuzene_muhe <- okuzene_muhe * t(matrikaNicel)
 
     zdrava_goveda <- zdrava_goveda - novo_okuzena_goveda
     okuzena_goveda <- okuzena_goveda + novo_okuzena_goveda
@@ -183,7 +194,7 @@ simuliraj <- function (kraji_okuzbe = c("Grosuplje"), stevilo_okuzenih = 200, st
     #stopifnot(any(zdrava_goveda < 0))
     #stopifnot(any(okuzena_goveda < 0))
     
-    zgodovina.okuzb[,,i + 1] <- okuzene_muhe
+    zgodovina.okuzb[,,i + 1] <- okuzena_goveda
     zdrava_goveda <- levo(zdrava_goveda)
     #print(sum(okuzene_muhe))
   }
@@ -204,6 +215,9 @@ ui <- bootstrapPage(
                 sliderInput("b", "Verjetnost prenosa okužbe muha=>govedo", 0, 1,
                             value = 0.9, step = 0.05
                 ),
+                selectInput("colors", "Color Scheme",
+                            rownames(subset(brewer.pal.info, category %in% c("seq", "div")))
+                ),
                 sliderInput("c2", "Verjetnost prenosa okužbe govedo=>muha", 0, 1,
                             value = 1, step = 0.05
                 )
@@ -212,33 +226,50 @@ ui <- bootstrapPage(
 
 server <- function(input, output, session) {
   podatki <- reactive({
-    print("Simuliram")
-    simuliraj(
+    pod <- simuliraj(
       prenos.muha.na.govedo = input$b,
       prenos.govedo.na.muho = input$c2,
       kraji_okuzbe=c("Metlika", "Koper", "Ptuj")
     )
+    pod
   })
 
   filteredData <- reactive({
-    indeksi.okuzenih <- which(podatki()[,,input$dan] > 0, arr.ind = TRUE)
-    lon_okuzenih <- lon_indeksov[indeksi.okuzenih[, 1]]
-    lat_okuzenih <- lat_indeksov[indeksi.okuzenih[, 2]]
-    data.frame(lat = lat_okuzenih, lon = lon_okuzenih)
+    podatki()[,,input$dan]
   })
   
+  # This reactive expression represents the palette function,
+  # which changes as the user makes selections in UI.
+  colorpal <- reactive({
+    colorNumeric(input$colors, filteredData())
+  })
+
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
-      fitBounds(A[1], A[2], D[1], D[2])
+      fitBounds(x.lim[1], y.lim[1], x.lim[2], y.lim[2])
   })
   
   observe({
     data <- filteredData()
-    map <- leafletProxy("map", data = data)
-    map %>% clearShapes()
-    if(nrow(data) > 0)
-      map %>% addCircles(radius=1, color="red",opacity=1, fillOpacity = 0.9, fillColor="red")
+    map <- leafletProxy("map")
+    r <- raster(data, xmn=x.lim[1], xmx=x.lim[2], ymn=y.lim[1], ymx=y.lim[2])
+    crs(r) <- CRS("+init=epsg:4326")
+    map %>% clearGroup("rastko")
+    map %>% addRasterImage(r, opacity = 0.7, colors=colorpal(), group = "rastko")
+  })
+
+# Use a separate observer to recreate the legend as needed.
+  observe({
+    data <- filteredData()
+    proxy <- leafletProxy("map")
+#
+#     # Remove any existing legend, and only if the legend is
+#     # enabled, create a new one.
+    proxy %>% clearControls()
+      proxy %>% addLegend(position = "bottomright",
+                          pal = colorpal(), values = data
+      )
   })
 }
 
