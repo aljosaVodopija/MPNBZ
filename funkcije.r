@@ -1,6 +1,27 @@
 library(ggmap)
 library(leaflet)
 
+x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
+y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
+dx <- 1 / 90
+dy <- 1 / 120
+st.vrstic <- round((y.lim[2] - y.lim[1]) / dy)
+st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx)
+dimenzije <- c(st.vrstic + 1, st.stolpcev + 1)
+
+
+razpredelnica.v.matriko <- function(razpredelnica) {
+  matrika <- matrix(0, nrow = st.vrstic, ncol = st.stolpcev)
+  for(indeks.vnosa in 1:nrow(razpredelnica)) {
+    vnos <- razpredelnica[indeks.vnosa, ]
+    stolpec <- round((vnos$lon - x.lim[1]) / dx + 1 / 2)
+    vrstica <- round((y.lim[2] - vnos$lat) / dy + 1 / 2)
+    if(1 <= vrstica && vrstica <= st.vrstic && 1 <= stolpec && stolpec <= st.stolpcev)
+      matrika[vrstica, stolpec] <- matrika[vrstica, stolpec] + vnos$mag
+  }
+  return(matrika)
+}
+
 naloziZivali <- function(datotekaPremikov, izpustiVrstice) {
     premiki <- read.table(datotekaPremikov, fill = TRUE)
     premiki <- premiki[izpustiVrstice:length(premiki[, 1]),]
@@ -85,3 +106,11 @@ geocode.cache <- function(mesta) {
   write.csv(kode, 'vmesni-podatki/koordinateKrajev.csv')
   return(kode[toupper(mesta), ])
 }
+
+koord2indeks <- function(vnos) {
+  stolpec <- round((vnos$lon - x.lim[1]) / dx + 1 / 2)
+  vrstica <- round((y.lim[2] - vnos$lat) / dy + 1 / 2)
+  return(matrix(c(vrstica, stolpec), ncol = 2))
+}
+
+
