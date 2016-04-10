@@ -75,18 +75,26 @@ server <- function(input, output, session) {
     simuliraj(
       prenos.muha.na.govedo = input$prenos.muha.na.govedo,
       prenos.govedo.na.muho = input$prenos.govedo.na.muho,
-      kraji.okuzbe = c("Metlika", "Koper", "Ptuj")
+      kraji.okuzbe = c("Grosuplje", "Ptuj")
     )
   })
   
   # Podatki dneva
   podatki.dneva <- reactive({
-    podatki()[, , input$dan]
+    podatki()[[input$dan]]
   })
   
   # Barvna paleta
-  paleta <- reactive({
-    colorNumeric("Reds", podatki.dneva())
+  paleta.goveda <- reactive({
+    colorNumeric("Reds", podatki.dneva()$okuzena.goveda, na.color = "#00000000")
+  })
+  
+  paleta.zdrava.goveda <- reactive({
+    colorNumeric("Greens", podatki.dneva()$zdrava.goveda, na.color = "#00000000")
+  })
+  
+  paleta.muh <- reactive({
+    colorNumeric("Blues", podatki.dneva()$okuzene.muhe, na.color = "#00000000")
   })
   
   # Osnovni zemljevid
@@ -103,18 +111,50 @@ server <- function(input, output, session) {
   
   # Raster
   observe({
+    muhe <- podatki.dneva()$okuzene.muhe
+    muhe[muhe == 0] <- NA
+    goveda <- podatki.dneva()$okuzena.goveda
+    goveda[goveda == 0] <- NA
+    zdrava.goveda <- podatki.dneva()$zdrava.goveda
+    zdrava.goveda[zdrava.goveda == 0] <- NA
     leafletProxy("map") %>%
       clearGroup("raster") %>%
       addRasterImage(
         raster(
-          podatki.dneva(),
+          muhe,
           xmn = x.lim[1],
           xmx = x.lim[2],
           ymn = y.lim[1],
           ymx = y.lim[2],
           crs = "+init=epsg:4326"
         ),
-        colors = paleta(),
+        colors = paleta.muh(),
+        opacity = 0.7,
+        group = "raster"
+      ) %>%
+      addRasterImage(
+        raster(
+          zdrava.goveda,
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta.zdrava.goveda(),
+        opacity = 0.7,
+        group = "raster"
+      ) %>%
+    addRasterImage(
+        raster(
+          goveda,
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta.goveda(),
         opacity = 0.7,
         group = "raster"
       )
@@ -125,8 +165,11 @@ server <- function(input, output, session) {
     leafletProxy("map") %>%
       clearControls() %>%
       addLegend(position = "bottomright",
-                pal = paleta(),
-                values = podatki.dneva())
+                pal = paleta.muh(),
+                values = podatki.dneva()$okuzene.muhe) %>%
+      addLegend(position = "bottomright",
+                pal = paleta.goveda(),
+                values = podatki.dneva()$okuzena.goveda)
   })
 }
 
