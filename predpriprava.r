@@ -64,11 +64,5 @@ nastaviVreme <- function (podatkiVreme, stDni) {
 
 nastaviVreme("vhodni-podatki/20150530.nc", 30)
 
-drobnica <- naloziZivali("vhodni-podatki/drobnica_stalez_3l.txt", 3)
-save(drobnica, file = 'vmesni-podatki/drobnica.RData')
-
-prasici <- naloziZivali("vhodni-podatki/prasici_stalez_3l.txt", 3)
-save(prasici, file = 'vmesni-podatki/prasici.RData')
-
-govedo <- naloziZivali("vhodni-podatki/govedo_3leta.txt", 5)
-save(govedo, file = 'vmesni-podatki/goveda.RData')
+stalez.goveda <- razpredelnica.v.matriko(naloziZivali("vhodni-podatki/govedo_3leta.txt", 4))
+save(stalez.goveda, file = 'vmesni-podatki/goveda.RData')

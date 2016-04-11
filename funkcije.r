@@ -5,9 +5,9 @@ x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
 y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
 dx <- 1 / 90
 dy <- 1 / 120
-st.vrstic <- round((y.lim[2] - y.lim[1]) / dy)
-st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx)
-dimenzije <- c(st.vrstic + 1, st.stolpcev + 1)
+st.vrstic <- round((y.lim[2] - y.lim[1]) / dy) + 1
+st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
+dimenzije <- c(st.vrstic, st.stolpcev)
 
 
 razpredelnica.v.matriko <- function(razpredelnica) {
@@ -17,53 +17,30 @@ razpredelnica.v.matriko <- function(razpredelnica) {
     stolpec <- round((vnos$lon - x.lim[1]) / dx + 1 / 2)
     vrstica <- round((y.lim[2] - vnos$lat) / dy + 1 / 2)
     if(1 <= vrstica && vrstica <= st.vrstic && 1 <= stolpec && stolpec <= st.stolpcev)
-      matrika[vrstica, stolpec] <- matrika[vrstica, stolpec] + vnos$mag
+      matrika[vrstica, stolpec] <- matrika[vrstica, stolpec] + vnos$stevilo
   }
   return(matrika)
 }
 
-naloziZivali <- function(datotekaPremikov, izpustiVrstice) {
-    premiki <- read.table(datotekaPremikov, fill = TRUE)
-    premiki <- premiki[izpustiVrstice:length(premiki[, 1]),]
-
-    obcine <- sapply(premiki$V2, as.character)
-    obcine <- iconv(obcine, to="windows-1251")
-    prestej <- premiki$V7
-    prestej <- data.matrix(prestej)
-    bum <-iconv(obcine, to="windows-1251")
-    bum <- as.data.frame(table(bum))
-
-    stevilo <-  rep(0, length(bum$bum))
-
-    for(i in 1:length(bum$bum)){
-      stevilo[i] = sum(na.omit(as.numeric(prestej[which(obcine==bum$bum[i])])))
-    }
-
-    lon <- rep(0, length(bum$bum))
-    lat <- rep(0, length(bum$bum))
-
-    for(i in 1:length(bum$bum)){
-      mesto <- bum$bum[i]
-      lon[i] <- as.numeric(geocode.cache(mesto)$lon)
-      lat[i] <- as.numeric(geocode.cache(mesto)$lat)
-    }
-
-    gospodarstva <- as.numeric(bum$Freq)
-
-
-    tabela <- data.frame(lon = lon, lat = lat, stevilo = stevilo, gospodarstva = gospodarstva)
-    rownames(tabela) <- as.character(bum$bum)
-    return(tabela[tabela$stevilo > 0,])
+naloziZivali <- function(datoteka, izpustiVrstice) {
+  stalez <- read.table(datoteka, fill = TRUE, col.names = c(".", "kraj", ".", ".", "x", "y", ".", "stevilo"), fileEncoding = "windows-1250", dec = ",", colClasses = c
+                       ("NULL", "character", "NULL", "NULL", "double", "double", "NULL", "double"), as.is = TRUE, skip = izpustiVrstice)
+  stalez$lon.kraja <- NA
+  stalez$lat.kraja <- NA
+  for(kraj in unique(stalez$kraj)) {
+    koordinate.kraja <- geocode.cache(kraj)
+    stalez$lon.kraja[stalez$kraj == kraj] <- as.numeric(koordinate.kraja$lon)
+    stalez$lat.kraja[stalez$kraj == kraj] <- as.numeric(koordinate.kraja$lat)
+  }
+  lon <- fitted(lm(lon.kraja ~ y, stalez))
+  lon <- (lon - min(lon)) * 8 / 6.4 + min(lon) - 1.3
+  lat <- fitted(lm(lat.kraja ~ x, stalez))
+  return(data.frame(
+    stevilo = stalez$stevilo,
+    lat = lat,
+    lon = lon
+  )) 
 }
-
-narisi <- function(lon, lat, cex, barva) {
-    ## zemljevid slovenije
-    m <- leaflet() %>%
-    addTiles() %>%  # Add default OpenStreetMap map tiles
-    addCircleMarkers(lng=lon, lat=lat, radius=cex, color=barva)
-    m  # Print the map
-}
-
 
 nastaviVeter <- function (u, N, M) {
 

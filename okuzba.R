@@ -22,14 +22,6 @@ source("funkcije.r")
 source("simulacija.r")
 
 
-# Risanje zemljevidov -----------------------------------------------------
-
-# Če želimo, lahko s spodnjimi ukazi narišemo zemljevide gospodarstev
-# narisi(drobnica$lon, drobnica$lat, sqrt(drobnica$gospodarstva), "red")
-# narisi(prasici$lon, prasici$lat, sqrt(prasici$gospodarstva) / 3, "blue")
-# narisi(govedo$lon, govedo$lat, sqrt(govedo$gospodarstva) / 2, "green")
-
-
 # Interaktivni vmesnik ----------------------------------------------------
 
 ui <- bootstrapPage(

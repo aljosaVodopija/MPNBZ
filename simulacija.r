@@ -35,7 +35,6 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt) {
   )
   return(muhe)
 }
-################################################
 
 # Dinamični del -----------------------------------------------------------
 
@@ -50,16 +49,10 @@ simuliraj <-
     stevilo <- list(
       zdrave.muhe = array(0, dim = dimenzije),
       okuzene.muhe = array(0, dim = dimenzije),
-      zdrava.goveda = array(0, dim = dimenzije),
+      zdrava.goveda = stalez.goveda,
       okuzena.goveda = array(0, dim = dimenzije)
     )
     
-    ### Govedo ####
-    for (k in 1:length(govedo$lon)) {
-      indeks = koord2indeks(govedo[k,])
-      stevilo$zdrava.goveda[indeks] <-
-        stevilo$zdrava.goveda[indeks] + govedo$stevilo[k]
-    }
     ####################################################
     for (kraj in kraji.okuzbe) {
       indeks = koord2indeks(geocode.cache(kraj))
@@ -117,7 +110,6 @@ simuliraj <-
       stevilo$zdrava.goveda <- stevilo$zdrava.goveda - novo.okuzena.goveda
       stevilo$okuzena.goveda <- stevilo$okuzena.goveda + novo.okuzena.goveda
       
-      stevilo$zdrava.goveda <- levo(stevilo$zdrava.goveda)
       zgodovina[[dan + 1]] <- stevilo
     }
     return(zgodovina)
