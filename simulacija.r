@@ -102,7 +102,6 @@ simuliraj <-
       zdrava.goveda = stalez.goveda,
       okuzena.goveda = array(0, dim = dimenzije)
     )
-    stevilo$zdrava.goveda[is.na(stevilo$zdrava.goveda)] <- 0
     ####################################################
     for (kraj in kraji.okuzbe) {
       indeks = koord2indeks(geocode.cache(kraj))

@@ -41,6 +41,7 @@ naloziZivali <- function(datoteka, izpustiVrstice) {
   lon <- fitted(lm(lon.kraja ~ y, stalez))
   lon <- (lon - min(lon)) * 8 / 6.4 + min(lon) - 1.3
   lat <- fitted(lm(lat.kraja ~ x, stalez))
+  stalez$stevilo[is.na(stalez$stevilo)] <- 0
   return(data.frame(
     stevilo = stalez$stevilo,
     lat = lat,
