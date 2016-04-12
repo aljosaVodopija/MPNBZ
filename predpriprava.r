@@ -14,17 +14,18 @@ nastaviMatrikoNicel <- function (maxVisina, neugodnePovrsine) {
   N <- 93
   M <- 56
   dim <- c((N - 2) * 3, (M - 2) * 4)
-  matrikaNicel <- matrix(rep(0, dim[1] * dim[2]), dim[1])
+  matrikaNicel <- matrix(rep(1, dim[1] * dim[2]), dim[1])
 
   for (i in 2:(N - 1)){
     for (j in 2:(M - 1)){
       #preveri ali je visina visja od max oz. ali je povrsina neugodna in
       #v pozitivnem primeru nastavi nicle
-      if((visina[i, j] < maxVisina) && !(lu[i, j] %in% neugodnePovrsine)){
-        matrikaNicel[(3*(i-2)+1):(3*(i-2)+3),(4*(j-2)+1):(4*(j-2)+4)] <- 1
+      if((visina[i, j] >= maxVisina)) { # && !(lu[i, j] %in% neugodnePovrsine)){
+        matrikaNicel[(3*(i-2)+1):(3*(i-2)+3),(4*(j-2)+1):(4*(j-2)+4)] <- 0
       }
     }
   }
+  matrikaNicel <- t(matrikaNicel[,216:1])
   save(matrikaNicel, file = "vmesni-podatki/matrikaNicel.RData")
 }
 

@@ -104,8 +104,8 @@ simuliraj <-
         stevilo$okuzene.muhe <-
           preseli.muhe(stevilo$okuzene.muhe, veter.x, veter.y, dt)
       }
-      stevilo$zdrave.muhe <- stevilo$zdrave.muhe * t(matrikaNicel)
-      stevilo$okuzene.muhe <- stevilo$okuzene.muhe * t(matrikaNicel)
+      stevilo$zdrave.muhe <- stevilo$zdrave.muhe * matrikaNicel
+      stevilo$okuzene.muhe <- stevilo$okuzene.muhe * matrikaNicel
       
       stevilo$zdrava.goveda <- stevilo$zdrava.goveda - novo.okuzena.goveda
       stevilo$okuzena.goveda <- stevilo$okuzena.goveda + novo.okuzena.goveda
