@@ -70,7 +70,7 @@ server <- function(input, output, session) {
       kraji.okuzbe = c("Grosuplje", "Ptuj")
     )
   })
-  
+
   # Podatki dneva
   podatki.dneva <- reactive({
     podatki()[[input$dan]]
@@ -78,15 +78,15 @@ server <- function(input, output, session) {
   
   # Barvna paleta
   paleta.goveda <- reactive({
-    colorNumeric("Reds", podatki.dneva()$okuzena.goveda, na.color = "#00000000")
+    colorNumeric("Reds", razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
   })
   
   paleta.zdrava.goveda <- reactive({
-    colorNumeric("Greens", podatki.dneva()$zdrava.goveda, na.color = "#00000000")
+    colorNumeric("Greens", razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
   })
   
   paleta.muh <- reactive({
-    colorNumeric("Blues", podatki.dneva()$okuzene.muhe, na.color = "#00000000")
+    colorNumeric("Blues", razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
   })
   
   # Osnovni zemljevid
@@ -158,10 +158,13 @@ server <- function(input, output, session) {
       clearControls() %>%
       addLegend(position = "bottomright",
                 pal = paleta.muh(),
-                values = podatki.dneva()$okuzene.muhe) %>%
+                values = razpon(podatki(), "okuzene.muhe")) %>%
       addLegend(position = "bottomright",
                 pal = paleta.goveda(),
-                values = podatki.dneva()$okuzena.goveda)
+                values = razpon(podatki(), "okuzena.goveda")) %>%
+      addLegend(position = "bottomright",
+                pal = paleta.zdrava.goveda(),
+                values = razpon(podatki(), "zdrava.goveda"))
   })
 }
 

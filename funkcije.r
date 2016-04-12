@@ -9,6 +9,12 @@ st.vrstic <- round((y.lim[2] - y.lim[1]) / dy) + 1
 st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
 dimenzije <- c(st.vrstic, st.stolpcev)
 
+razpon <- function(razpredelnice, stolpec) {
+  c(
+    min(sapply(razpredelnice, function(dan) min(dan[[stolpec]]))),
+    max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
+  )
+}
 
 razpredelnica.v.matriko <- function(razpredelnica) {
   matrika <- matrix(0, nrow = st.vrstic, ncol = st.stolpcev)
