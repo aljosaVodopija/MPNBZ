@@ -52,6 +52,41 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
 }
 
 # Dinamični del -----------------------------------------------------------
+simuliraj.dan <- function(nataliteta.muh, dan, opazovalni.cas.okuzbe, prenos.govedo.na.muho, stevilo, prenos.muha.na.govedo, veter.x, veter.y) {
+  gamma <- nataliteta.muh * T * (T - 10.4) * sin(dan / opazovalni.cas.okuzbe * 2 * pi)
+  
+  novo.okuzene.muhe <-
+    round(
+      prenos.govedo.na.muho * stevilo$zdrave.muhe * stevilo$okuzena.goveda / (stevilo$zdrava.goveda + stevilo$okuzena.goveda)
+    )
+  novo.okuzene.muhe[stevilo$zdrava.goveda + stevilo$okuzena.goveda == 0] <- 0
+  novo.okuzena.goveda <-
+    round(
+      prenos.muha.na.govedo * stevilo$zdrava.goveda * stevilo$okuzene.muhe / (stevilo$zdrave.muhe + stevilo$okuzene.muhe)
+    )
+  novo.okuzena.goveda[stevilo$zdrave.muhe + stevilo$okuzene.muhe == 0] <- 0
+  
+  stevilo$zdrave.muhe <-
+    stevilo$zdrave.muhe + gamma * stevilo$zdrave.muhe - novo.okuzene.muhe
+  stevilo$okuzene.muhe <-
+    stevilo$okuzene.muhe + gamma * stevilo$okuzene.muhe + novo.okuzene.muhe
+  
+  stevilo.selitev <- 1
+  trenje <- 0.05
+  for (selitev in 1:stevilo.selitev) {
+    dt <- 24 / stevilo.selitev
+    stevilo$zdrave.muhe <- preseli.muhe(stevilo$zdrave.muhe, veter.x, veter.y, dt, trenje)
+    stevilo$okuzene.muhe <-
+      preseli.muhe(stevilo$okuzene.muhe, veter.x, veter.y, dt, trenje)
+  }
+  stevilo$zdrave.muhe <- stevilo$zdrave.muhe * matrikaNicel
+  stevilo$okuzene.muhe <- stevilo$okuzene.muhe * matrikaNicel
+  
+  stevilo$zdrava.goveda <- stevilo$zdrava.goveda - novo.okuzena.goveda
+  stevilo$okuzena.goveda <- stevilo$okuzena.goveda + novo.okuzena.goveda
+  return(stevilo)
+}
+
 
 simuliraj <-
   function (kraji.okuzbe = c("Grosuplje"),
@@ -93,39 +128,7 @@ simuliraj <-
       veter.y <- t(meridionalniVeter[, , dan])
       # povprečna dnevna temperatura v stopinjah Celzija
       T <- t(temperatura[, , dan])
-      
-      gamma <- nataliteta.muh * T * (T - 10.4) * sin(i / opazovalni.cas.okuzbe * 2 * pi)
-
-      novo.okuzene.muhe <-
-        round(
-          prenos.govedo.na.muho * stevilo$zdrave.muhe * stevilo$okuzena.goveda / (stevilo$zdrava.goveda + stevilo$okuzena.goveda)
-        )
-      novo.okuzene.muhe[stevilo$zdrava.goveda + stevilo$okuzena.goveda == 0] <- 0
-      novo.okuzena.goveda <-
-        round(
-          prenos.muha.na.govedo * stevilo$zdrava.goveda * stevilo$okuzene.muhe / (stevilo$zdrave.muhe + stevilo$okuzene.muhe)
-        )
-      novo.okuzena.goveda[stevilo$zdrave.muhe + stevilo$okuzene.muhe == 0] <- 0
-
-      stevilo$zdrave.muhe <-
-        stevilo$zdrave.muhe + gamma * stevilo$zdrave.muhe - novo.okuzene.muhe
-      stevilo$okuzene.muhe <-
-        stevilo$okuzene.muhe + gamma * stevilo$okuzene.muhe + novo.okuzene.muhe
-      
-      stevilo.selitev <- 1
-      trenje <- 0.05
-      for (selitev in 1:stevilo.selitev) {
-        dt <- 24 / stevilo.selitev
-        stevilo$zdrave.muhe <- preseli.muhe(stevilo$zdrave.muhe, veter.x, veter.y, dt, trenje)
-        stevilo$okuzene.muhe <-
-          preseli.muhe(stevilo$okuzene.muhe, veter.x, veter.y, dt, trenje)
-      }
-      stevilo$zdrave.muhe <- stevilo$zdrave.muhe * matrikaNicel
-      stevilo$okuzene.muhe <- stevilo$okuzene.muhe * matrikaNicel
-      
-      stevilo$zdrava.goveda <- stevilo$zdrava.goveda - novo.okuzena.goveda
-      stevilo$okuzena.goveda <- stevilo$okuzena.goveda + novo.okuzena.goveda
-      
+      stevilo <- simuliraj.dan(nataliteta.muh, dan, opazovalni.cas.okuzbe, prenos.govedo.na.muho, stevilo, prenos.muha.na.govedo, veter.x, veter.y)
       zgodovina[[dan + 1]] <- stevilo
     }
     return(zgodovina)
