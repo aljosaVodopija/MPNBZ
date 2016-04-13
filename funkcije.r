@@ -13,7 +13,6 @@ razpon <- function(razpredelnice, stolpec) {
   mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
   maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
   razpon <- signif(c(mini, maksi), 0)
-  print(razpon)
   return(razpon)
 }
 

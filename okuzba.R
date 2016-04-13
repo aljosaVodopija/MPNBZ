@@ -17,7 +17,7 @@ load("vmesni-podatki/temperatura.RData")
 load("vmesni-podatki/matrikaNicel.RData")
 load("vmesni-podatki/goveda.RData")
 stalez.drobnice <- 0 * stalez.goveda
-
+natancnost <- 240
 # Naložimo pomožne funkcije
 source("funkcije.r")
 source("simulacija.r")

@@ -9,47 +9,53 @@ dodaj.rob <- function(matrika) {
 }
 
 odstrani.rob <- function(matrika) {
-  return(matrika[c(-1,-nrow(matrika)), c(-1,-ncol(matrika))])
+  return(matrika[c(-1, -nrow(matrika)), c(-1, -ncol(matrika))])
 }
 
 levo <- function(matrika) {
-  matrika[,-1] <- matrika[,-ncol(matrika)]
+  matrika[, -1] <- matrika[, -ncol(matrika)]
   return(matrika)
 }
 
 desno <- function(matrika) {
-  matrika[,-ncol(matrika)] <- matrika[,-1]
+  matrika[, -ncol(matrika)] <- matrika[, -1]
   return(matrika)
 }
 
 zgoraj <- function(matrika) {
-  matrika[-1,] <- matrika[-nrow(matrika),]
+  matrika[-1, ] <- matrika[-nrow(matrika), ]
   return(matrika)
 }
 
 spodaj <- function(matrika) {
-  matrika[-nrow(matrika),] <- matrika[-1,]
+  matrika[-nrow(matrika), ] <- matrika[-1, ]
   return(matrika)
 }
 
 preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
-  muhe <- dodaj.rob(muhe)
-  veter.x <- dodaj.rob(veter.x)
-  veter.y <- dodaj.rob(veter.y)
-  muhe <- muhe + trenje * dt * (
-    0
-    + pmax(0, veter.x + levo(veter.x)) * levo(muhe)
-    + pmin(0, veter.x + levo(veter.x)) * muhe
-    - pmin(0, veter.x + desno(veter.x)) * desno(muhe)
-    - pmax(0, veter.x + desno(veter.x)) * muhe
-    + pmax(0, veter.y + spodaj(veter.y)) * spodaj(muhe)
-    + pmin(0, veter.y + spodaj(veter.y)) * muhe
-    - pmin(0, veter.y + zgoraj(veter.y)) * zgoraj(muhe)
-    - pmax(0, veter.y + zgoraj(veter.y)) * muhe
-  ) / 2
-  muhe <- pmax(muhe, 0)
-  muhe <- odstrani.rob(muhe)
-  return(muhe)
+  # veter.x <- 0 * veter.x + 5
+  # veter.y <- 0 * veter.y + 5
+  
+  premik.x <- abs(veter.x * dt)
+  premik.y <- abs(veter.y * dt)
+  
+  izstop.x <- muhe * premik.x * (1 - premik.y)
+  izstop.y <- muhe * (1 - premik.x) * premik.y
+  izstop.xy <- muhe * premik.x * premik.y
+  pri.miru <- muhe - izstop.x - izstop.y - izstop.xy
+  
+  preseljene.muhe <-
+    pri.miru +
+    levo(izstop.x * (veter.x > 0)) +
+    desno(izstop.y * (veter.x < 0)) +
+    spodaj(izstop.y * (veter.y > 0)) +
+    zgoraj(izstop.y * (veter.y < 0)) +
+    levo(spodaj(izstop.xy * (veter.x > 0 && veter.y > 0))) +
+    desno(spodaj(izstop.xy * (veter.x < 0 && veter.y > 0))) +
+    levo(zgoraj(izstop.xy * (veter.x > 0 && veter.y < 0))) +
+    desno(zgoraj(izstop.xy * (veter.x < 0 && veter.y < 0)))
+
+  return(preseljene.muhe)
 }
 
 # Dinamični del -----------------------------------------------------------
@@ -58,48 +64,56 @@ simuliraj.dan <-
            dan,
            stanje,
            vreme) {
-    govedo <- stanje$zdrava.goveda + stanje$okuzena.goveda
-    drobnica <- stanje$zdrava.drobnica + stanje$okuzena.drobnica
-
-    # Število pikov
-    stevilo.pikov.govedo <-
-      parametri$stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-    stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
-    stevilo.pikov.drobnica <-
-      parametri$stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-    stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
-    novo.okuzena.goveda <- round(stanje$zdrava.goveda * (1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo))
-    novo.okuzena.drobnica <- round(stanje$zdrava.drobnica * (1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica))
-    
-    # Okužbe goveda
-    stanje$zdrava.goveda <-
-      stanje$zdrava.goveda - novo.okuzena.goveda
-    stanje$okuzena.goveda <-
-      stanje$okuzena.goveda + novo.okuzena.goveda
-    stanje$zdrava.drobnica <-
-      stanje$zdrava.drobnica - novo.okuzena.drobnica
-    stanje$okuzena.drobnica <-
-      stanje$okuzena.drobnica + novo.okuzena.drobnica
-    
-    # Okužbe muh
-    novo.okuzene.muhe <-
-      round(stanje$zdrave.muhe * parametri$prenos.gostitelj.na.vektor * parametri$stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica))
-    novo.okuzene.muhe[govedo + drobnica == 0] <- 0
-    stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
-    stanje$okuzene.muhe <- stanje$okuzene.muhe + novo.okuzene.muhe
-    
-    # Nataliteta muh
-    gamma <-
-      parametri$nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalni.cas.okuzbe * 2 * pi)
-    stanje$zdrave.muhe <- stanje$zdrave.muhe + gamma * stanje$zdrave.muhe
-    stanje$okuzene.muhe <-
-      stanje$okuzene.muhe + gamma * stanje$okuzene.muhe
-    
-    # Preseljevanje muh
-    stevilo.selitev <- 1
-    trenje <- 1
-    for (selitev in 1:stevilo.selitev) {
-      dt <- 24 / stevilo.selitev
+    for (korak in 1:natancnost) {
+      govedo <- stanje$zdrava.goveda + stanje$okuzena.goveda
+      drobnica <- stanje$zdrava.drobnica + stanje$okuzena.drobnica
+      
+      # Število pikov
+      stevilo.pikov.govedo <-
+        parametri$stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+      stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
+      stevilo.pikov.drobnica <-
+        parametri$stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+      stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
+      novo.okuzena.goveda <-
+        round(stanje$zdrava.goveda * (
+          1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo
+        ))
+      novo.okuzena.drobnica <-
+        round(stanje$zdrava.drobnica * (
+          1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica
+        ))
+      
+      # Okužbe goveda
+      stanje$zdrava.goveda <-
+        stanje$zdrava.goveda - novo.okuzena.goveda
+      stanje$okuzena.goveda <-
+        stanje$okuzena.goveda + novo.okuzena.goveda
+      stanje$zdrava.drobnica <-
+        stanje$zdrava.drobnica - novo.okuzena.drobnica
+      stanje$okuzena.drobnica <-
+        stanje$okuzena.drobnica + novo.okuzena.drobnica
+      
+      # Okužbe muh
+      novo.okuzene.muhe <-
+        round(
+          stanje$zdrave.muhe * parametri$prenos.gostitelj.na.vektor * parametri$stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
+        )
+      novo.okuzene.muhe[govedo + drobnica == 0] <- 0
+      stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
+      stanje$okuzene.muhe <- stanje$okuzene.muhe + novo.okuzene.muhe
+      
+      # Nataliteta muh
+      gamma <-
+        parametri$nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalni.cas.okuzbe * 2 * pi)
+      stanje$zdrave.muhe <-
+        stanje$zdrave.muhe + gamma * stanje$zdrave.muhe
+      stanje$okuzene.muhe <-
+        stanje$okuzene.muhe + gamma * stanje$okuzene.muhe
+      
+      # Preseljevanje muh
+      trenje <- 1
+      dt <- 24 / natancnost
       stanje$zdrave.muhe <-
         preseli.muhe(stanje$zdrave.muhe,
                      vreme$veter.x,
@@ -112,10 +126,9 @@ simuliraj.dan <-
                      vreme$veter.y,
                      dt,
                      trenje)
+      stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
+      stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
     }
-    stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
-    stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
-
     return(stanje)
   }
 
@@ -127,10 +140,11 @@ simuliraj <-
             stevilo.okuzenih = 200,
             stevilo.muh.na.govedo = 900,
             stevilo.muh.na.drobnico = 900 / nagnjenost,
-            nataliteta.muh = 0.0003,
-            prenos.gostitelj.na.vektor = 0.01, # med 0.001 in 0.15
-            stopnja.ugrizov = 0.17,
-            opazovalni.cas.okuzbe = 30,
+            nataliteta.muh = ((1 + 0.0003) ^ (1 / natancnost) - 1),
+            prenos.gostitelj.na.vektor = 0.01,
+            # med 0.001 in 0.15
+            stopnja.ugrizov = 0.17 / natancnost,
+            opazovalni.cas.okuzbe = 5,
             prenos.vektor.na.gostitelj = 0.9) {
     parametri = list(
       kraji.okuzbe = kraji.okuzbe,
