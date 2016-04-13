@@ -6,7 +6,6 @@
 # Naložimo knjižnice za delo z zemljevidi
 library(shiny)
 library(leaflet)
-library(RColorBrewer)
 library(raster)
 
 # Naložimo vnaprej izračunane podatke. Če jih ni, moramo najprej pognati
@@ -19,7 +18,6 @@ load("vmesni-podatki/goveda.RData")
 stalez.drobnice <- 0 * stalez.goveda
 natancnost <- 240
 # Naložimo pomožne funkcije
-source("funkcije.r")
 source("simulacija.r")
 
 
@@ -63,6 +61,13 @@ ui <- bootstrapPage(
 )
 
 server <- function(input, output, session) {
+  razpon <- function(razpredelnice, stolpec) {
+    mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
+    maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
+    razpon <- signif(c(mini, maksi), 0)
+    return(razpon)
+  }
+  
   # Rezultati simulacije
   podatki <- reactive({
     simuliraj(
