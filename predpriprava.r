@@ -35,7 +35,7 @@ nastaviVreme <- function (podatkiVreme, stDni) {
 
   N <- 93
   M <- 56
-  dim <- c((N - 2) * 3, (M - 2) * 4)
+  dim <- c((M - 2) * 4, (N - 2) * 3)
 
   zonalniVeter <- array(0, dim = c(dim[1], dim[2], stDni))
   meridionalniVeter <- array(0, dim = c(dim[1], dim[2], stDni))
@@ -53,9 +53,11 @@ nastaviVreme <- function (podatkiVreme, stDni) {
     v <- round(apply(vt, c(1,2), mean), 1)
     t <- round(apply(tt, c(1,2), mean), 1)
 
-    zonalniVeter[, , i] <- round(3.6 * nastaviVeter(u, N, M), 1)
-    meridionalniVeter[, , i] <- round(3.6 * nastaviVeter(v, N, M), 1)
-    temperatura[, , i] <- round(nastaviVeter(t, N, M) - 273, 1)
+    # ker so podatki za zonalni veter v smeri vzhod-zahod,
+    # mi pa jih želimo v smeri zahod-vzhod, matriko najprej negiramo
+    zonalniVeter[, , i] <- -t(round(3.6 * nastaviVeter(u, N, M), 1))
+    meridionalniVeter[, , i] <- t(round(3.6 * nastaviVeter(v, N, M), 1))
+    temperatura[, , i] <- t(round(nastaviVeter(t, N, M) - 273, 1))
   }
 
   save(zonalniVeter, file = "vmesni-podatki/zonalniVeter.RData")

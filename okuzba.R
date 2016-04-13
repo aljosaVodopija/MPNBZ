@@ -16,6 +16,7 @@ load("vmesni-podatki/meridionalniVeter.RData")
 load("vmesni-podatki/temperatura.RData")
 load("vmesni-podatki/matrikaNicel.RData")
 load("vmesni-podatki/goveda.RData")
+stalez.drobnice <- 0 * stalez.goveda
 
 # Naložimo pomožne funkcije
 source("funkcije.r")
@@ -41,7 +42,7 @@ ui <- bootstrapPage(
       step = 1
     ),
     sliderInput(
-      inputId = "prenos.muha.na.govedo",
+      inputId = "prenos.vektor.na.gostitelj",
       label = "Verjetnost prenosa okužbe muha=>govedo",
       min = 0,
       max = 1,
@@ -49,7 +50,7 @@ ui <- bootstrapPage(
       step = 0.05
     ),
     sliderInput(
-      inputId = "prenos.govedo.na.muho",
+      inputId = "prenos.gostitelj.na.vektor",
       label = "Verjetnost prenosa okužbe govedo=>muha",
       min = 0,
       max = 1,
@@ -65,8 +66,8 @@ server <- function(input, output, session) {
   # Rezultati simulacije
   podatki <- reactive({
     simuliraj(
-      prenos.muha.na.govedo = input$prenos.muha.na.govedo,
-      prenos.govedo.na.muho = input$prenos.govedo.na.muho,
+      prenos.vektor.na.gostitelj = input$prenos.vektor.na.gostitelj,
+      prenos.gostitelj.na.vektor = input$prenos.gostitelj.na.vektor,
       kraji.okuzbe = c("Grosuplje", "Ptuj")
     )
   })
@@ -78,15 +79,15 @@ server <- function(input, output, session) {
   
   # Barvna paleta
   paleta.goveda <- reactive({
-    colorNumeric("Reds", razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#fee0d2", "#de2d26")), razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
   })
   
   paleta.zdrava.goveda <- reactive({
-    colorNumeric("Greens", razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#e5f5e0", "#31a354")), razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
   })
   
   paleta.muh <- reactive({
-    colorNumeric("Blues", razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#deebf7", "#3182bd")), razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
   })
   
   # Osnovni zemljevid

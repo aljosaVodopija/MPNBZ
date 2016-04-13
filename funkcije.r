@@ -10,10 +10,11 @@ st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
 dimenzije <- c(st.vrstic, st.stolpcev)
 
 razpon <- function(razpredelnice, stolpec) {
-  c(
-    min(sapply(razpredelnice, function(dan) min(dan[[stolpec]]))),
-    max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
-  )
+  mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
+  maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
+  razpon <- signif(c(mini, maksi), 0)
+  print(razpon)
+  return(razpon)
 }
 
 razpredelnica.v.matriko <- function(razpredelnica) {
