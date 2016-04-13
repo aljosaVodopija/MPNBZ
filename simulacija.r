@@ -76,7 +76,7 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
     levo(zgoraj(izstop.xy * (veter.x > 0 && veter.y < 0))) +
     desno(zgoraj(izstop.xy * (veter.x < 0 && veter.y < 0)))
 
-  return(preseljene.muhe)
+  return(round(preseljene.muhe))
 }
 
 # Dinamični del -----------------------------------------------------------
@@ -128,9 +128,9 @@ simuliraj.dan <-
       gamma <-
         parametri$nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalni.cas.okuzbe * 2 * pi)
       stanje$zdrave.muhe <-
-        stanje$zdrave.muhe + gamma * stanje$zdrave.muhe
+        round(stanje$zdrave.muhe + gamma * stanje$zdrave.muhe)
       stanje$okuzene.muhe <-
-        stanje$okuzene.muhe + gamma * stanje$okuzene.muhe
+        round(stanje$okuzene.muhe + gamma * stanje$okuzene.muhe)
       
       # Preseljevanje muh
       trenje <- 1

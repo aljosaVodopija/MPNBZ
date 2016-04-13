@@ -1,7 +1,7 @@
 # Priprava ----------------------------------------------------------------
 
 # Po potrebi je treba namestiti pakete s spodnjim ukazom:
-# install.packages(c("ggmap", "leaflet", "raster"))
+# install.packages(c("shiny", "leaflet", "raster"))
 
 # Naložimo knjižnice za delo z zemljevidi
 library(shiny)
@@ -64,8 +64,7 @@ server <- function(input, output, session) {
   razpon <- function(razpredelnice, stolpec) {
     mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
     maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
-    razpon <- signif(c(mini, maksi), 0)
-    return(razpon)
+    return(c(mini, maksi))
   }
   
   # Rezultati simulacije
