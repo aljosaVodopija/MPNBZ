@@ -5,11 +5,11 @@ dimenzije <- c(st.vrstic, st.stolpcev)
 indeks.kraja <- function(mesto) {
   kode = read.csv('vmesni-podatki/koordinateKrajev.csv', row.names = 1)
   mesto = toupper(mesto)
-  if(!mesto %in% rownames(kode)) {
-    kode[mesto, ] = geocode(paste(mesto, "SLOVENIJA"))
+  if (!mesto %in% rownames(kode)) {
+    kode[mesto,] = geocode(paste(mesto, "SLOVENIJA"))
   }
   write.csv(kode, 'vmesni-podatki/koordinateKrajev.csv')
-  koordinate <- kode[mesto, ]
+  koordinate <- kode[mesto,]
   stolpec <- round((koordinate$lon - x.lim[1]) / dx + 1 / 2)
   vrstica <- round((y.lim[2] - koordinate$lat) / dy + 1 / 2)
   return(matrix(c(vrstica, stolpec), ncol = 2))
@@ -26,26 +26,26 @@ dodaj.rob <- function(matrika) {
 }
 
 odstrani.rob <- function(matrika) {
-  return(matrika[c(-1, -nrow(matrika)), c(-1, -ncol(matrika))])
+  return(matrika[c(-1,-nrow(matrika)), c(-1,-ncol(matrika))])
 }
 
 levo <- function(matrika) {
-  matrika[, -1] <- matrika[, -ncol(matrika)]
+  matrika[,-1] <- matrika[,-ncol(matrika)]
   return(matrika)
 }
 
 desno <- function(matrika) {
-  matrika[, -ncol(matrika)] <- matrika[, -1]
+  matrika[,-ncol(matrika)] <- matrika[,-1]
   return(matrika)
 }
 
 zgoraj <- function(matrika) {
-  matrika[-1, ] <- matrika[-nrow(matrika), ]
+  matrika[-1,] <- matrika[-nrow(matrika),]
   return(matrika)
 }
 
 spodaj <- function(matrika) {
-  matrika[-nrow(matrika), ] <- matrika[-1, ]
+  matrika[-nrow(matrika),] <- matrika[-1,]
   return(matrika)
 }
 
@@ -68,7 +68,7 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
     desno(spodaj(izstop.xy * (veter.x < 0 && veter.y > 0))) +
     levo(zgoraj(izstop.xy * (veter.x > 0 && veter.y < 0))) +
     desno(zgoraj(izstop.xy * (veter.x < 0 && veter.y < 0)))
-
+  
   return(round(preseljene.muhe))
 }
 
@@ -77,76 +77,70 @@ simuliraj.dan <-
   function(dan,
            stanje,
            vreme) {
-    for (korak in 1:natancnost) {
-      govedo <- stanje$zdrava.goveda + stanje$okuzena.goveda
-      drobnica <- stanje$zdrava.drobnica + stanje$okuzena.drobnica
-      
-      # Število pikov
-      stevilo.pikov.govedo <-
-        stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-      stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
-      stevilo.pikov.drobnica <-
-        stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-      stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
-      novo.okuzena.goveda <-
-        round(stanje$zdrava.goveda * (
-          1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo
-        ))
-      novo.okuzena.drobnica <-
-        round(stanje$zdrava.drobnica * (
-          1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica
-        ))
-      
-      # Okužbe goveda
-      stanje$zdrava.goveda <-
-        stanje$zdrava.goveda - novo.okuzena.goveda
-      stanje$okuzena.goveda <-
-        stanje$okuzena.goveda + novo.okuzena.goveda
-      stanje$zdrava.drobnica <-
-        stanje$zdrava.drobnica - novo.okuzena.drobnica
-      stanje$okuzena.drobnica <-
-        stanje$okuzena.drobnica + novo.okuzena.drobnica
-      
-      # Okužbe muh
-      novo.okuzene.muhe <-
-        round(
-          stanje$zdrave.muhe * prenos.gostitelj.na.vektor * stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
-        )
-      novo.okuzene.muhe[govedo + drobnica == 0] <- 0
-      stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
-      stanje$okuzene.muhe <- stanje$okuzene.muhe + novo.okuzene.muhe
-      
-      # Nataliteta muh
-      gamma <-
-        nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / opazovalni.cas.okuzbe * 2 * pi)
-      stanje$zdrave.muhe <-
-        round(stanje$zdrave.muhe + gamma * stanje$zdrave.muhe)
-      stanje$okuzene.muhe <-
-        round(stanje$okuzene.muhe + gamma * stanje$okuzene.muhe)
-      
-      # Preseljevanje muh
-      trenje <- 1
-      dt <- 24 / natancnost
-      stanje$zdrave.muhe <-
-        preseli.muhe(stanje$zdrave.muhe,
-                     vreme$veter.x,
-                     vreme$veter.y,
-                     dt,
-                     trenje)
-      stanje$okuzene.muhe <-
-        preseli.muhe(stanje$okuzene.muhe,
-                     vreme$veter.x,
-                     vreme$veter.y,
-                     dt,
-                     trenje)
-      stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
-      stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
-    }
+    govedo <- stanje$zdrava.goveda + stanje$okuzena.goveda
+    drobnica <- stanje$zdrava.drobnica + stanje$okuzena.drobnica
+    
+    # Število pikov
+    stevilo.pikov.govedo <-
+      stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+    stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
+    stevilo.pikov.drobnica <-
+      stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+    stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
+    novo.okuzena.goveda <-
+      round(stanje$zdrava.goveda * (1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo))
+    novo.okuzena.drobnica <-
+      round(stanje$zdrava.drobnica * (1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica))
+    
+    # Okužbe goveda
+    stanje$zdrava.goveda <-
+      stanje$zdrava.goveda - novo.okuzena.goveda
+    stanje$okuzena.goveda <-
+      stanje$okuzena.goveda + novo.okuzena.goveda
+    stanje$zdrava.drobnica <-
+      stanje$zdrava.drobnica - novo.okuzena.drobnica
+    stanje$okuzena.drobnica <-
+      stanje$okuzena.drobnica + novo.okuzena.drobnica
+    
+    # Okužbe muh
+    novo.okuzene.muhe <-
+      round(
+        stanje$zdrave.muhe * prenos.gostitelj.na.vektor * stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
+      )
+    novo.okuzene.muhe[govedo + drobnica == 0] <- 0
+    stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
+    stanje$okuzene.muhe <- stanje$okuzene.muhe + novo.okuzene.muhe
+    
+    # Nataliteta muh
+    gamma <-
+      nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / opazovalni.cas.okuzbe * 2 * pi)
+    stanje$zdrave.muhe <-
+      round(stanje$zdrave.muhe + gamma * stanje$zdrave.muhe)
+    stanje$okuzene.muhe <-
+      round(stanje$okuzene.muhe + gamma * stanje$okuzene.muhe)
+    
+    # Preseljevanje muh
+    trenje <- 1
+    dt <- 24 / natancnost
+    stanje$zdrave.muhe <-
+      preseli.muhe(stanje$zdrave.muhe,
+                   vreme$veter.x,
+                   vreme$veter.y,
+                   dt,
+                   trenje)
+    stanje$okuzene.muhe <-
+      preseli.muhe(stanje$okuzene.muhe,
+                   vreme$veter.x,
+                   vreme$veter.y,
+                   dt,
+                   trenje)
+    stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
+    stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
     return(stanje)
   }
 
 simuliraj <-
-  function () {
+  function (updateProgress = NULL) {
     # Seznam, v katerem bomo hranili vse podatke simulacije
     stanje <- list()
     
@@ -173,16 +167,27 @@ simuliraj <-
     zgodovina <- as.list(1:(opazovalni.cas.okuzbe + 1))
     zgodovina[[1]] <- stanje
     for (dan in 1:opazovalni.cas.okuzbe) {
-      stanje <-
-        simuliraj.dan(
-          dan,
-          stanje,
-          list(
-            veter.x = zonalniVeter[, , dan],
-            veter.y = meridionalniVeter[, , dan],
-            temperatura = temperatura[, , dan]
+      for (korak in 1:natancnost) {
+        stanje <-
+          simuliraj.dan(
+            dan,
+            stanje,
+            list(
+              veter.x = zonalniVeter[, , dan],
+              veter.y = meridionalniVeter[, , dan],
+              temperatura = temperatura[, , dan]
+            )
           )
-        )
+        if (is.function(updateProgress)) {
+          text <- paste0("Dan: ", dan, "/", opazovalni.cas.okuzbe)
+          detail <- paste0("", round(100 * korak / natancnost), "%")
+          updateProgress(
+            detail = detail,
+            message = text,
+            value = ((dan - 1) * natancnost + korak) / (opazovalni.cas.okuzbe * natancnost)
+          )
+        }
+      }
       zgodovina[[dan + 1]] <- stanje
     }
     return(zgodovina)
@@ -211,14 +216,32 @@ ui <- bootstrapPage(
 
 server <- function(input, output, session) {
   razpon <- function(razpredelnice, stolpec) {
-    mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
-    maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
+    mini <-
+      min(sapply(razpredelnice, function(dan)
+        min(dan[[stolpec]])))
+    maksi <-
+      max(sapply(razpredelnice, function(dan)
+        max(dan[[stolpec]])))
     return(c(mini, maksi))
   }
   
   # Rezultati simulacije
   podatki <- reactive({
-    simuliraj()
+    progress <- shiny::Progress$new()
+    updateProgress <-
+      function(value = NULL,
+               detail = NULL,
+               message = NULL) {
+        if (is.null(value)) {
+          value <- progress$getValue()
+        }
+        progress$set(value = value,
+                     detail = detail,
+                     message = message)
+      }
+    on.exit(progress$close())
+    progress$set(message = "Zaganjam simulacijo", value = 0)
+    simuliraj(updateProgress)
   })
   
   # Podatki dneva
@@ -228,15 +251,21 @@ server <- function(input, output, session) {
   
   # Barvna paleta
   paleta.goveda <- reactive({
-    colorNumeric(colorRamp(c("#fee0d2", "#de2d26")), razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#fee0d2", "#de2d26")),
+                 razpon(podatki(), "okuzena.goveda"),
+                 na.color = "#00000000")
   })
   
   paleta.zdrava.goveda <- reactive({
-    colorNumeric(colorRamp(c("#e5f5e0", "#31a354")), razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#e5f5e0", "#31a354")),
+                 razpon(podatki(), "zdrava.goveda"),
+                 na.color = "#00000000")
   })
   
   paleta.muh <- reactive({
-    colorNumeric(colorRamp(c("#deebf7", "#3182bd")), razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
+    colorNumeric(colorRamp(c("#deebf7", "#3182bd")),
+                 razpon(podatki(), "okuzene.muhe"),
+                 na.color = "#00000000")
   })
   
   # Osnovni zemljevid
@@ -306,14 +335,20 @@ server <- function(input, output, session) {
   observe({
     leafletProxy("map") %>%
       clearControls() %>%
-      addLegend(position = "bottomright",
-                pal = paleta.muh(),
-                values = razpon(podatki(), "okuzene.muhe")) %>%
-      addLegend(position = "bottomright",
-                pal = paleta.goveda(),
-                values = razpon(podatki(), "okuzena.goveda")) %>%
-      addLegend(position = "bottomright",
-                pal = paleta.zdrava.goveda(),
-                values = razpon(podatki(), "zdrava.goveda"))
+      addLegend(
+        position = "bottomright",
+        pal = paleta.muh(),
+        values = razpon(podatki(), "okuzene.muhe")
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        pal = paleta.goveda(),
+        values = razpon(podatki(), "okuzena.goveda")
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        pal = paleta.zdrava.goveda(),
+        values = razpon(podatki(), "zdrava.goveda")
+      )
   })
 }
