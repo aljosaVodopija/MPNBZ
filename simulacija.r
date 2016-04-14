@@ -178,14 +178,20 @@ simuliraj <-
               temperatura = temperatura[, , dan]
             )
           )
+        text <- paste0("Dan ", dan, " / ", opazovalni.cas.okuzbe)
+        detail <- paste0("", round(100 * korak / natancnost), "%")
         if (is.function(updateProgress)) {
-          text <- paste0("Dan: ", dan, "/", opazovalni.cas.okuzbe)
-          detail <- paste0("", round(100 * korak / natancnost), "%")
           updateProgress(
             detail = detail,
             message = text,
             value = ((dan - 1) * natancnost + korak) / (opazovalni.cas.okuzbe * natancnost)
           )
+        } else {
+          if(korak == 1)
+            cat(text)
+          cat("...", detail, sep = "")
+          if(korak == natancnost)
+            cat("\n")
         }
       }
       zgodovina[[dan + 1]] <- stanje
