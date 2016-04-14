@@ -17,9 +17,6 @@ load("vmesni-podatki/matrikaNicel.RData")
 load("vmesni-podatki/govedo.RData")
 load("vmesni-podatki/drobnica.RData")
 
-# meridionalniVeter <- 0 * meridionalniVeter + 5
-# zonalniVeter <- 0 * zonalniVeter + 5
-
 # Nastavimo parametre
 x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
 y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
@@ -28,14 +25,14 @@ dy <- 1 / 120
 kraji.okuzbe <- c("Grosuplje", "Ptuj")
 stevilo.okuzenih <- 200
 stevilo.muh.na.govedo <- 900
+nagnjenost <- 9.4
+natancnost <- 10
 stevilo.muh.na.drobnico <- 900 / nagnjenost
 nataliteta.muh <- ((1 + 0.0003) ^ (1 / natancnost) - 1)
 prenos.gostitelj.na.vektor <- 0.01 # med 0.001 in 0.15
 stopnja.ugrizov <- 0.17 / natancnost
-prenos.vektor.na.gostitelj <- 0.9        
-opazovalni.cas.okuzbe <- 2
-nagnjenost <- 9.4
-natancnost <- 240
+prenos.vektor.na.gostitelj <- 0.9
+opazovalni.cas.okuzbe <- 4
 
 # Naložimo pomožne funkcije
 source("simulacija.r")

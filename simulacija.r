@@ -1,7 +1,3 @@
-st.vrstic <- round((y.lim[2] - y.lim[1]) / dy) + 1
-st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
-dimenzije <- c(st.vrstic, st.stolpcev)
-
 indeks.kraja <- function(mesto) {
   kode = read.csv('vmesni-podatki/koordinateKrajev.csv', row.names = 1)
   mesto = toupper(mesto)
@@ -13,20 +9,6 @@ indeks.kraja <- function(mesto) {
   stolpec <- round((koordinate$lon - x.lim[1]) / dx + 1 / 2)
   vrstica <- round((y.lim[2] - koordinate$lat) / dy + 1 / 2)
   return(matrix(c(vrstica, stolpec), ncol = 2))
-}
-
-dodaj.rob <- function(matrika) {
-  matrika <- rbind(0, matrika, 0)
-  matrika <- cbind(0, matrika, 0)
-  # matrika[1, ] = matrika[2, ]
-  # matrika[nrow(matrika), ] = matrika[nrow(matrika) - 1, ]
-  # matrika[, 1] = matrika[, 2]
-  # matrika[, ncol(matrika)] = matrika[, ncol(matrika) - 1]
-  return(matrika)
-}
-
-odstrani.rob <- function(matrika) {
-  return(matrika[c(-1,-nrow(matrika)), c(-1,-ncol(matrika))])
 }
 
 levo <- function(matrika) {
@@ -49,7 +31,7 @@ spodaj <- function(matrika) {
   return(matrika)
 }
 
-preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
+preseli.muhe <- function(muhe, veter.x, veter.y, dt) {
   premik.x <- abs(veter.x * dt)
   premik.y <- abs(veter.y * dt)
   
@@ -72,7 +54,6 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
   return(round(preseljene.muhe))
 }
 
-# Dinamični del -----------------------------------------------------------
 simuliraj.dan <-
   function(dan,
            stanje,
@@ -120,20 +101,17 @@ simuliraj.dan <-
       round(stanje$okuzene.muhe + gamma * stanje$okuzene.muhe)
     
     # Preseljevanje muh
-    trenje <- 1
     dt <- 24 / natancnost
     stanje$zdrave.muhe <-
       preseli.muhe(stanje$zdrave.muhe,
                    vreme$veter.x,
                    vreme$veter.y,
-                   dt,
-                   trenje)
+                   dt)
     stanje$okuzene.muhe <-
       preseli.muhe(stanje$okuzene.muhe,
                    vreme$veter.x,
                    vreme$veter.y,
-                   dt,
-                   trenje)
+                   dt)
     stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
     stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
     return(stanje)
@@ -148,7 +126,7 @@ simuliraj <-
     stanje$zdrava.goveda =
       govedo
     stanje$zdrava.drobnica =
-      0 * drobnica
+      drobnica
     stanje$okuzena.drobnica =
       0 * stanje$zdrava.drobnica
     stanje$okuzena.goveda <-
@@ -187,10 +165,10 @@ simuliraj <-
             value = ((dan - 1) * natancnost + korak) / (opazovalni.cas.okuzbe * natancnost)
           )
         } else {
-          if(korak == 1)
+          if (korak == 1)
             cat(text)
           cat("...", detail, sep = "")
-          if(korak == natancnost)
+          if (korak == natancnost)
             cat("\n")
         }
       }
@@ -256,7 +234,7 @@ server <- function(input, output, session) {
   })
   
   # Barvna paleta
-  paleta.goveda <- reactive({
+  paleta.okuzena.goveda <- reactive({
     colorNumeric(colorRamp(c("#fee0d2", "#de2d26")),
                  razpon(podatki(), "okuzena.goveda"),
                  na.color = "#00000000")
@@ -268,7 +246,7 @@ server <- function(input, output, session) {
                  na.color = "#00000000")
   })
   
-  paleta.muh <- reactive({
+  paleta.okuzenih.muh <- reactive({
     colorNumeric(colorRamp(c("#deebf7", "#3182bd")),
                  razpon(podatki(), "okuzene.muhe"),
                  na.color = "#00000000")
@@ -288,25 +266,25 @@ server <- function(input, output, session) {
   
   # Raster
   observe({
-    muhe <- podatki.dneva()$okuzene.muhe
-    muhe[muhe == 0] <- NA
-    goveda <- podatki.dneva()$okuzena.goveda
-    goveda[goveda == 0] <- NA
+    okuzene.muhe <- podatki.dneva()$okuzene.muhe
+    okuzene.muhe[okuzene.muhe == 0] <- NA
+    okuzena.goveda <- podatki.dneva()$okuzena.goveda
+    okuzena.goveda[okuzena.goveda == 0] <- NA
     zdrava.goveda <- podatki.dneva()$zdrava.goveda
     zdrava.goveda[zdrava.goveda == 0] <- NA
     leafletProxy("map") %>%
       clearGroup("raster") %>%
       addRasterImage(
         raster(
-          muhe,
+          okuzene.muhe,
           xmn = x.lim[1],
           xmx = x.lim[2],
           ymn = y.lim[1],
           ymx = y.lim[2],
           crs = "+init=epsg:4326"
         ),
-        colors = paleta.muh(),
-        opacity = 0.7,
+        colors = paleta.okuzenih.muh(),
+        opacity = 0.9,
         group = "raster"
       ) %>%
       addRasterImage(
@@ -319,20 +297,20 @@ server <- function(input, output, session) {
           crs = "+init=epsg:4326"
         ),
         colors = paleta.zdrava.goveda(),
-        opacity = 0.7,
+        opacity = 0.9,
         group = "raster"
       ) %>%
       addRasterImage(
         raster(
-          goveda,
+          okuzena.goveda,
           xmn = x.lim[1],
           xmx = x.lim[2],
           ymn = y.lim[1],
           ymx = y.lim[2],
           crs = "+init=epsg:4326"
         ),
-        colors = paleta.goveda(),
-        opacity = 0.7,
+        colors = paleta.okuzena.goveda(),
+        opacity = 0.9,
         group = "raster"
       )
   })
@@ -342,19 +320,22 @@ server <- function(input, output, session) {
     leafletProxy("map") %>%
       clearControls() %>%
       addLegend(
-        position = "bottomright",
-        pal = paleta.muh(),
-        values = razpon(podatki(), "okuzene.muhe")
+        position = "bottomleft",
+        pal = paleta.okuzenih.muh(),
+        values = razpon(podatki(), "okuzene.muhe"),
+        title = "Okužene muhe"
       ) %>%
       addLegend(
         position = "bottomright",
-        pal = paleta.goveda(),
-        values = razpon(podatki(), "okuzena.goveda")
+        pal = paleta.okuzena.goveda(),
+        values = razpon(podatki(), "okuzena.goveda"),
+        title = "Okuženo govedo"
       ) %>%
       addLegend(
         position = "bottomright",
         pal = paleta.zdrava.goveda(),
-        values = razpon(podatki(), "zdrava.goveda")
+        values = razpon(podatki(), "zdrava.goveda"),
+        title = "Zdravo govedo"
       )
   })
 }
