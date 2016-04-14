@@ -1,7 +1,3 @@
-x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
-y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
-dx <- 1 / 90
-dy <- 1 / 120
 st.vrstic <- round((y.lim[2] - y.lim[1]) / dy) + 1
 st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
 dimenzije <- c(st.vrstic, st.stolpcev)
@@ -54,9 +50,6 @@ spodaj <- function(matrika) {
 }
 
 preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
-  # veter.x <- 0 * veter.x + 5
-  # veter.y <- 0 * veter.y + 5
-  
   premik.x <- abs(veter.x * dt)
   premik.y <- abs(veter.y * dt)
   
@@ -81,8 +74,7 @@ preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
 
 # Dinamični del -----------------------------------------------------------
 simuliraj.dan <-
-  function(parametri,
-           dan,
+  function(dan,
            stanje,
            vreme) {
     for (korak in 1:natancnost) {
@@ -91,18 +83,18 @@ simuliraj.dan <-
       
       # Število pikov
       stevilo.pikov.govedo <-
-        parametri$stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+        stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
       stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
       stevilo.pikov.drobnica <-
-        parametri$stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+        stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
       stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
       novo.okuzena.goveda <-
         round(stanje$zdrava.goveda * (
-          1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo
+          1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo
         ))
       novo.okuzena.drobnica <-
         round(stanje$zdrava.drobnica * (
-          1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica
+          1 - (1 - prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica
         ))
       
       # Okužbe goveda
@@ -118,7 +110,7 @@ simuliraj.dan <-
       # Okužbe muh
       novo.okuzene.muhe <-
         round(
-          stanje$zdrave.muhe * parametri$prenos.gostitelj.na.vektor * parametri$stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
+          stanje$zdrave.muhe * prenos.gostitelj.na.vektor * stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
         )
       novo.okuzene.muhe[govedo + drobnica == 0] <- 0
       stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
@@ -126,7 +118,7 @@ simuliraj.dan <-
       
       # Nataliteta muh
       gamma <-
-        parametri$nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalni.cas.okuzbe * 2 * pi)
+        nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / opazovalni.cas.okuzbe * 2 * pi)
       stanje$zdrave.muhe <-
         round(stanje$zdrave.muhe + gamma * stanje$zdrave.muhe)
       stanje$okuzene.muhe <-
@@ -153,30 +145,8 @@ simuliraj.dan <-
     return(stanje)
   }
 
-nagnjenost <- 9.4
-
 simuliraj <-
-  function (kraji.okuzbe = c("Škofja Loka"),
-            stevilo.okuzenih = 200,
-            stevilo.muh.na.govedo = 900,
-            stevilo.muh.na.drobnico = 900 / nagnjenost,
-            nataliteta.muh = ((1 + 0.0003) ^ (1 / natancnost) - 1),
-            prenos.gostitelj.na.vektor = 0.01,
-            # med 0.001 in 0.15
-            stopnja.ugrizov = 0.17 / natancnost,
-            opazovalni.cas.okuzbe = 5,
-            prenos.vektor.na.gostitelj = 0.9) {
-    parametri = list(
-      kraji.okuzbe = kraji.okuzbe,
-      stevilo.okuzenih = stevilo.okuzenih,
-      stevilo.muh.na.govedo = stevilo.muh.na.govedo,
-      stevilo.muh.na.drobnico = stevilo.muh.na.drobnico,
-      nataliteta.muh = nataliteta.muh,
-      stopnja.ugrizov = stopnja.ugrizov,
-      prenos.gostitelj.na.vektor = prenos.gostitelj.na.vektor,
-      opazovalni.cas.okuzbe = opazovalni.cas.okuzbe,
-      prenos.vektor.na.gostitelj = prenos.vektor.na.gostitelj
-    )
+  function () {
     # Seznam, v katerem bomo hranili vse podatke simulacije
     stanje <- list()
     
@@ -189,23 +159,22 @@ simuliraj <-
       0 * stanje$zdrava.drobnica
     stanje$okuzena.goveda <-
       0 * stanje$zdrava.goveda
-    for (kraj in parametri$kraji.okuzbe) {
-      stanje$okuzena.goveda[indeks.kraja(kraj)] <- parametri$stevilo.okuzenih
+    for (kraj in kraji.okuzbe) {
+      stanje$okuzena.goveda[indeks.kraja(kraj)] <- stevilo.okuzenih
     }
     
     # Začetno število zdravih in okuženih muh
     stanje$zdrave.muhe <-
-      stanje$zdrava.goveda * parametri$stevilo.muh.na.govedo + stanje$zdrava.drobnica * parametri$stevilo.muh.na.drobnico
+      stanje$zdrava.goveda * stevilo.muh.na.govedo + stanje$zdrava.drobnica * stevilo.muh.na.drobnico
     stanje$okuzene.muhe <-
-      stanje$okuzena.goveda * parametri$stevilo.muh.na.govedo + stanje$okuzena.drobnica * parametri$stevilo.muh.na.drobnico
+      stanje$okuzena.goveda * stevilo.muh.na.govedo + stanje$okuzena.drobnica * stevilo.muh.na.drobnico
     
     # Seznam stanj za vsak dan
-    zgodovina <- as.list(1:(parametri$opazovalni.cas.okuzbe + 1))
+    zgodovina <- as.list(1:(opazovalni.cas.okuzbe + 1))
     zgodovina[[1]] <- stanje
-    for (dan in 1:parametri$opazovalni.cas.okuzbe) {
+    for (dan in 1:opazovalni.cas.okuzbe) {
       stanje <-
         simuliraj.dan(
-          parametri,
           dan,
           stanje,
           list(
@@ -218,3 +187,133 @@ simuliraj <-
     }
     return(zgodovina)
   }
+
+ui <- bootstrapPage(
+  tags$style(type = "text/css", "html, body { width: 100%; height: 100% }"),
+  leafletOutput(
+    outputId = "map",
+    width = "100%",
+    height = "100%"
+  ),
+  absolutePanel(
+    sliderInput(
+      inputId = "dan",
+      label = "Dan",
+      min = 0,
+      max = opazovalni.cas.okuzbe,
+      value = 0,
+      step = 1
+    ),
+    top = 10,
+    right = 10
+  )
+)
+
+server <- function(input, output, session) {
+  razpon <- function(razpredelnice, stolpec) {
+    mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
+    maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
+    return(c(mini, maksi))
+  }
+  
+  # Rezultati simulacije
+  podatki <- reactive({
+    simuliraj()
+  })
+  
+  # Podatki dneva
+  podatki.dneva <- reactive({
+    podatki()[[input$dan + 1]]
+  })
+  
+  # Barvna paleta
+  paleta.goveda <- reactive({
+    colorNumeric(colorRamp(c("#fee0d2", "#de2d26")), razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
+  })
+  
+  paleta.zdrava.goveda <- reactive({
+    colorNumeric(colorRamp(c("#e5f5e0", "#31a354")), razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
+  })
+  
+  paleta.muh <- reactive({
+    colorNumeric(colorRamp(c("#deebf7", "#3182bd")), razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
+  })
+  
+  # Osnovni zemljevid
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      fitBounds(
+        lng1 = x.lim[1],
+        lat1 = y.lim[1],
+        lng2 = x.lim[2],
+        lat2 = y.lim[2]
+      )
+  })
+  
+  # Raster
+  observe({
+    muhe <- podatki.dneva()$okuzene.muhe
+    muhe[muhe == 0] <- NA
+    goveda <- podatki.dneva()$okuzena.goveda
+    goveda[goveda == 0] <- NA
+    zdrava.goveda <- podatki.dneva()$zdrava.goveda
+    zdrava.goveda[zdrava.goveda == 0] <- NA
+    leafletProxy("map") %>%
+      clearGroup("raster") %>%
+      addRasterImage(
+        raster(
+          muhe,
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta.muh(),
+        opacity = 0.7,
+        group = "raster"
+      ) %>%
+      addRasterImage(
+        raster(
+          zdrava.goveda,
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta.zdrava.goveda(),
+        opacity = 0.7,
+        group = "raster"
+      ) %>%
+      addRasterImage(
+        raster(
+          goveda,
+          xmn = x.lim[1],
+          xmx = x.lim[2],
+          ymn = y.lim[1],
+          ymx = y.lim[2],
+          crs = "+init=epsg:4326"
+        ),
+        colors = paleta.goveda(),
+        opacity = 0.7,
+        group = "raster"
+      )
+  })
+  
+  # Legenda
+  observe({
+    leafletProxy("map") %>%
+      clearControls() %>%
+      addLegend(position = "bottomright",
+                pal = paleta.muh(),
+                values = razpon(podatki(), "okuzene.muhe")) %>%
+      addLegend(position = "bottomright",
+                pal = paleta.goveda(),
+                values = razpon(podatki(), "okuzena.goveda")) %>%
+      addLegend(position = "bottomright",
+                pal = paleta.zdrava.goveda(),
+                values = razpon(podatki(), "zdrava.goveda"))
+  })
+}

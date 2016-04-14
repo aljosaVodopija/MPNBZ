@@ -8,169 +8,37 @@ library(shiny)
 library(leaflet)
 library(raster)
 
-# Naložimo vnaprej izračunane podatke. Če jih ni, moramo najprej pognati
-# program "predpriprava.r"
+# Naložimo vnaprej izračunane podatke.
+# Če jih ni, moramo najprej pognati program "predpriprava.r"
 load("vmesni-podatki/zonalniVeter.RData")
 load("vmesni-podatki/meridionalniVeter.RData")
 load("vmesni-podatki/temperatura.RData")
 load("vmesni-podatki/matrikaNicel.RData")
 load("vmesni-podatki/govedo.RData")
 load("vmesni-podatki/drobnica.RData")
+
+# meridionalniVeter <- 0 * meridionalniVeter + 5
+# zonalniVeter <- 0 * zonalniVeter + 5
+
+# Nastavimo parametre
+x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
+y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
+dx <- 1 / 90
+dy <- 1 / 120
+kraji.okuzbe <- c("Grosuplje", "Ptuj")
+stevilo.okuzenih <- 200
+stevilo.muh.na.govedo <- 900
+stevilo.muh.na.drobnico <- 900 / nagnjenost
+nataliteta.muh <- ((1 + 0.0003) ^ (1 / natancnost) - 1)
+prenos.gostitelj.na.vektor <- 0.01 # med 0.001 in 0.15
+stopnja.ugrizov <- 0.17 / natancnost
+prenos.vektor.na.gostitelj <- 0.9        
+opazovalni.cas.okuzbe <- 2
+nagnjenost <- 9.4
 natancnost <- 240
+
 # Naložimo pomožne funkcije
 source("simulacija.r")
 
-
-# Interaktivni vmesnik ----------------------------------------------------
-
-ui <- bootstrapPage(
-  tags$style(type = "text/css", "html, body { width: 100%; height: 100% }"),
-  leafletOutput(
-    outputId = "map",
-    width = "100%",
-    height = "100%"
-  ),
-  absolutePanel(
-    sliderInput(
-      inputId = "dan",
-      label = "Dan",
-      min = 1,
-      max = 31,
-      value = 1,
-      step = 1
-    ),
-    sliderInput(
-      inputId = "prenos.vektor.na.gostitelj",
-      label = "Verjetnost prenosa okužbe muha=>govedo",
-      min = 0,
-      max = 1,
-      value = 0.9,
-      step = 0.05
-    ),
-    sliderInput(
-      inputId = "prenos.gostitelj.na.vektor",
-      label = "Verjetnost prenosa okužbe govedo=>muha",
-      min = 0,
-      max = 1,
-      value = 1,
-      step = 0.05
-    ),
-    top = 10,
-    right = 10
-  )
-)
-
-server <- function(input, output, session) {
-  razpon <- function(razpredelnice, stolpec) {
-    mini <- min(sapply(razpredelnice, function(dan) min(dan[[stolpec]])))
-    maksi <- max(sapply(razpredelnice, function(dan) max(dan[[stolpec]])))
-    return(c(mini, maksi))
-  }
-  
-  # Rezultati simulacije
-  podatki <- reactive({
-    simuliraj(
-      prenos.vektor.na.gostitelj = input$prenos.vektor.na.gostitelj,
-      prenos.gostitelj.na.vektor = input$prenos.gostitelj.na.vektor,
-      kraji.okuzbe = c("Grosuplje", "Ptuj")
-    )
-  })
-
-  # Podatki dneva
-  podatki.dneva <- reactive({
-    podatki()[[input$dan]]
-  })
-  
-  # Barvna paleta
-  paleta.goveda <- reactive({
-    colorNumeric(colorRamp(c("#fee0d2", "#de2d26")), razpon(podatki(), "okuzena.goveda"), na.color = "#00000000")
-  })
-  
-  paleta.zdrava.goveda <- reactive({
-    colorNumeric(colorRamp(c("#e5f5e0", "#31a354")), razpon(podatki(), "zdrava.goveda"), na.color = "#00000000")
-  })
-  
-  paleta.muh <- reactive({
-    colorNumeric(colorRamp(c("#deebf7", "#3182bd")), razpon(podatki(), "okuzene.muhe"), na.color = "#00000000")
-  })
-  
-  # Osnovni zemljevid
-  output$map <- renderLeaflet({
-    leaflet() %>%
-      addTiles() %>%
-      fitBounds(
-        lng1 = x.lim[1],
-        lat1 = y.lim[1],
-        lng2 = x.lim[2],
-        lat2 = y.lim[2]
-      )
-  })
-  
-  # Raster
-  observe({
-    muhe <- podatki.dneva()$okuzene.muhe
-    muhe[muhe == 0] <- NA
-    goveda <- podatki.dneva()$okuzena.goveda
-    goveda[goveda == 0] <- NA
-    zdrava.goveda <- podatki.dneva()$zdrava.goveda
-    zdrava.goveda[zdrava.goveda == 0] <- NA
-    leafletProxy("map") %>%
-      clearGroup("raster") %>%
-      addRasterImage(
-        raster(
-          muhe,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
-          crs = "+init=epsg:4326"
-        ),
-        colors = paleta.muh(),
-        opacity = 0.7,
-        group = "raster"
-      ) %>%
-      addRasterImage(
-        raster(
-          zdrava.goveda,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
-          crs = "+init=epsg:4326"
-        ),
-        colors = paleta.zdrava.goveda(),
-        opacity = 0.7,
-        group = "raster"
-      ) %>%
-    addRasterImage(
-        raster(
-          goveda,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
-          crs = "+init=epsg:4326"
-        ),
-        colors = paleta.goveda(),
-        opacity = 0.7,
-        group = "raster"
-      )
-  })
-  
-  # Legenda
-  observe({
-    leafletProxy("map") %>%
-      clearControls() %>%
-      addLegend(position = "bottomright",
-                pal = paleta.muh(),
-                values = razpon(podatki(), "okuzene.muhe")) %>%
-      addLegend(position = "bottomright",
-                pal = paleta.goveda(),
-                values = razpon(podatki(), "okuzena.goveda")) %>%
-      addLegend(position = "bottomright",
-                pal = paleta.zdrava.goveda(),
-                values = razpon(podatki(), "zdrava.goveda"))
-  })
-}
-
+# Poženemo interaktivni vmesnik
 shinyApp(ui, server)
