@@ -14,8 +14,8 @@ load("vmesni-podatki/zonalniVeter.RData")
 load("vmesni-podatki/meridionalniVeter.RData")
 load("vmesni-podatki/temperatura.RData")
 load("vmesni-podatki/matrikaNicel.RData")
-load("vmesni-podatki/goveda.RData")
-stalez.drobnice <- 0 * stalez.goveda
+load("vmesni-podatki/govedo.RData")
+load("vmesni-podatki/drobnica.RData")
 natancnost <- 240
 # Naložimo pomožne funkcije
 source("simulacija.r")

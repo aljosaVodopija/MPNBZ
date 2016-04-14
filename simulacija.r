@@ -154,7 +154,6 @@ simuliraj.dan <-
   }
 
 nagnjenost <- 9.4
-stalez.drobnice <- 0 * stalez.goveda
 
 simuliraj <-
   function (kraji.okuzbe = c("Škofja Loka"),
@@ -183,9 +182,9 @@ simuliraj <-
     
     # Začetno število zdravega in okuženega goveda
     stanje$zdrava.goveda =
-      stalez.goveda
+      govedo
     stanje$zdrava.drobnica =
-      stalez.drobnice
+      0 * drobnica
     stanje$okuzena.drobnica =
       0 * stanje$zdrava.drobnica
     stanje$okuzena.goveda <-
