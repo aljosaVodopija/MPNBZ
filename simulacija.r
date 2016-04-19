@@ -173,7 +173,7 @@ simuliraj <-
       kraj <- trim(kraj)
       if (kraj != "")
         stanje$okuzena.goveda[indeks.kraja(kraj)] <-
-        parametri$zacetno.stevilo.okuzenih
+          parametri$zacetno.stevilo.okuzenih
     }
     
     # Začetno število zdravih in okuženih muh
@@ -217,7 +217,8 @@ simuliraj <-
       }
       zgodovina[[dan + 1]] <- stanje
     }
-    save(zgodovina, file = file.path("izhodni-podatki", parametri$ime.datoteke))
+    save(zgodovina,
+         file = file.path("izhodni-podatki", parametri$ime.datoteke))
     return(parametri$ime.datoteke)
   }
 
@@ -231,93 +232,104 @@ ui <- bootstrapPage(
     tabPanel(
       "Izračun modela",
       value = "izracun",
-      fluidRow(
-        column(
-          3,
-          offset = 1,
-          sliderInput(
-            inputId = "opazovalni.cas.okuzbe",
-            label = "Opazovalni čas okužbe",
-            min = 1,
-            max = 31,
-            value = 10
+      div(
+        style = "padding: 20px",
+        fixedRow(
+          column(
+            4,
+            sliderInput(
+              inputId = "opazovalni.cas.okuzbe",
+              label = "Opazovalni čas okužbe",
+              min = 1,
+              max = 31,
+              value = 10
+            ),
+            textInput(
+              inputId = "ime.shrani",
+              label = "Ime datoteke",
+              value = format(Sys.time(), "Simulacija (%Y-%m-%d %H:%M).RData")
+            ),
+            hr(),
+            h4("Začetna okužba"),
+            textInput(
+              inputId = "kraji.okuzbe",
+              label = "Kraj okužbe",
+              value = "Grosuplje, Ptuj"
+            ),
+            sliderInput(
+              inputId = "zacetno.stevilo.okuzenih",
+              label = "Začetno število okuženih živali",
+              min = 0,
+              max = 1000,
+              value = 200
+            )
           ),
-          textInput(
-            inputId = "kraji.okuzbe",
-            label = "Kraj okužbe",
-            value = "Grosuplje, Ptuj"
+          column(
+            4,
+            h4("Verjetnosti prenosa okužbe"),
+            sliderInput(
+              inputId = "stopnja.ugrizov",
+              label = "Stopnja ugrizov",
+              min = 0,
+              max = 100,
+              value = 17,
+              step = 1,
+              post = "%"
+            ),
+            sliderInput(
+              inputId = "prenos.gostitelj.na.vektor",
+              label = "Verjetnost prenosa z gostitelja na vektor",
+              min = 0,
+              max = 15,
+              value = 1,
+              step = 0.1,
+              post = "%"
+            ),
+            sliderInput(
+              inputId = "prenos.vektor.na.gostitelj",
+              label = "Verjetnost prenosa z vektorja na gostitelj",
+              min = 0,
+              max = 100,
+              value = 90,
+              step = 1,
+              post = "%"
+            )
           ),
-          sliderInput(
-            inputId = "zacetno.stevilo.okuzenih",
-            label = "Začetno število okuženih živali",
-            min = 0,
-            max = 1000,
-            value = 200
+          column(
+            4,
+            h4("Populacija muh"),
+            sliderInput(
+              inputId = "stevilo.muh.na.govedo",
+              label = "Število muh na glavo goveda",
+              min = 0,
+              max = 5000,
+              value = 900
+            ),
+            sliderInput(
+              inputId = "stevilo.muh.na.drobnico",
+              label = "Število muh na glavo drobnice",
+              min = 0,
+              max = 500,
+              value = 100
+            ),
+            sliderInput(
+              inputId = "nataliteta.muh",
+              label = "Največja dnevna nataliteta muh",
+              min = 0,
+              max = 1,
+              value = 0.3,
+              step = 0.01,
+              post = "%"
+            )
           )
         ),
-        column(
-          3,
-          offset = 1,
-          sliderInput(
-            inputId = "stopnja.ugrizov",
-            label = "Stopnja ugrizov",
-            min = 0,
-            max = 1,
-            value = 0.17,
-            step = 0.01
-          ),
-          sliderInput(
-            inputId = "prenos.gostitelj.na.vektor",
-            label = "Verjetnost prenosa z gostitelja na vektor",
-            min = 0,
-            max = 0.15,
-            value = 0.01,
-            step = 0.001
-          ),
-          sliderInput(
-            inputId = "prenos.vektor.na.gostitelj",
-            label = "Verjetnost prenosa z vektorja na gostitelj",
-            min = 0,
-            max = 1,
-            value = 0.9,
-            step = 0.01
-          )
-        ),
-        column(
-          3,
-          offset = 1,
-          sliderInput(
-            inputId = "stevilo.muh.na.govedo",
-            label = "Število muh na glavo goveda",
-            min = 0,
-            max = 5000,
-            value = 900
-          ),
-          sliderInput(
-            inputId = "stevilo.muh.na.drobnico",
-            label = "Število muh na glavo drobnice",
-            min = 0,
-            max = 500,
-            value = 100
-          ),
-          sliderInput(
-            inputId = "nataliteta.muh",
-            label = "Največja dnevna nataliteta muh",
-            min = 0,
-            max = 0.01,
-            value = 0.003,
-            step = 0.0001
-          )
-        )
-      ),
-      hr(),
-      textInput(
-        inputId = "ime.shrani",
-        label = "Ime datoteke",
-        value = format(Sys.time(), "Simulacija (%Y-%m-%d %H:%M).RData")
-      ),
-      actionButton(inputId = "pozeni.simulacijo",
-                   label = "Poženi simulacijo")
+        hr(),
+        fixedRow(column(
+          12,
+          actionButton(inputId = "pozeni.simulacijo",
+                       label = "Poženi simulacijo")
+        ))
+      )
     ),
     tabPanel(
       "Prikaz modela",
@@ -341,7 +353,7 @@ ui <- bootstrapPage(
               inputId = "dan",
               label = "Dan",
               min = 0,
-              max = opazovalni.cas.okuzbe,
+              max = 0,
               value = 0,
               step = 1
             )
@@ -370,12 +382,9 @@ server <- function(input, output, session) {
     req(input$ime.datoteke)
     env <- new.env()
     load(file.path("izhodni-podatki", input$ime.datoteke), envir = env)
-    updateSliderInput(
-      session,
-      "dan",
-      value = min(input$dan, length(env$zgodovina) - 1),
-      max = length(env$zgodovina) - 1
-    )
+    updateSliderInput(session,
+                      "dan",
+                      max = length(env$zgodovina) - 1)
     env$zgodovina
   })
   
@@ -388,10 +397,10 @@ server <- function(input, output, session) {
         zacetno.stevilo.okuzenih = input$zacetno.stevilo.okuzenih,
         stevilo.muh.na.govedo = input$stevilo.muh.na.govedo,
         stevilo.muh.na.drobnico = input$stevilo.muh.na.drobnico,
-        nataliteta.muh = input$nataliteta.muh,
-        prenos.gostitelj.na.vektor = input$prenos.gostitelj.na.vektor,
-        stopnja.ugrizov = input$stopnja.ugrizov,
-        prenos.vektor.na.gostitelj = input$prenos.vektor.na.gostitelj,
+        nataliteta.muh = input$nataliteta.muh / 100,
+        prenos.gostitelj.na.vektor = input$prenos.gostitelj.na.vektor / 100,
+        stopnja.ugrizov = input$stopnja.ugrizov / 100,
+        prenos.vektor.na.gostitelj = input$prenos.vektor.na.gostitelj / 100,
         opazovalni.cas.okuzbe = input$opazovalni.cas.okuzbe,
         ime.datoteke = input$ime.shrani
       )
