@@ -18,13 +18,17 @@ load("vmesni-podatki/govedo.RData")
 load("vmesni-podatki/drobnica.RData")
 
 # Nastavimo parametre
-zonalniVeter <- 0 * zonalniVeter + 0.1
-meridionalniVeter <- 0 * meridionalniVeter + 0.1
+trenje <- 0.1
+zonalniVeter <- trenje * zonalniVeter
+meridionalniVeter <- trenje * meridionalniVeter
 x.lim <- c(13.5 - 1 / 90, 16.5 + 1 / 90)
 y.lim <- c(45.2 + 1 / 30 - 1.5 / 120,  47 + 1.5 / 120)
 dx <- 1 / 90
 dy <- 1 / 120
-natancnost <- 10
+natancnost <- ceiling(24 * max(zonalniVeter ^ 2 + meridionalniVeter ^ 2) ^ 0.5)
+st.vrstic <- round((y.lim[2] - y.lim[1]) / dy) + 1
+st.stolpcev <- round((x.lim[2] - x.lim[1]) / dx) + 1
+dimenzije <- c(st.vrstic, st.stolpcev)
 
 
 indeks.kraja <- function(mesto) {
