@@ -1,115 +1,117 @@
 levo <- function(matrika) {
-  matrika[, -1] <- matrika[, -ncol(matrika)]
+  matrika[,-1] <- matrika[,-ncol(matrika)]
   return(matrika)
 }
 
 desno <- function(matrika) {
-  matrika[, -ncol(matrika)] <- matrika[, -1]
+  matrika[,-ncol(matrika)] <- matrika[,-1]
   return(matrika)
 }
 
 zgoraj <- function(matrika) {
-  matrika[-1, ] <- matrika[-nrow(matrika), ]
+  matrika[-1,] <- matrika[-nrow(matrika),]
   return(matrika)
 }
 
 spodaj <- function(matrika) {
-  matrika[-nrow(matrika), ] <- matrika[-1, ]
+  matrika[-nrow(matrika),] <- matrika[-1,]
   return(matrika)
 }
 
-preseli.muhe <- function(muhe, veter.x, veter.y, dt, trenje) {
-  premik.x <- abs(veter.x * dt * trenje)
-  premik.y <- abs(veter.y * dt * trenje)
+preseliMuhe <- function(muhe, veterX, veterY, dt, trenje) {
+  premikX <- abs(veterX * dt * trenje)
+  premikY <- abs(veterY * dt * trenje)
   
-  izstop.x <- muhe * premik.x * (1 - premik.y)
-  izstop.y <- muhe * (1 - premik.x) * premik.y
-  izstop.xy <- muhe * premik.x * premik.y
-  pri.miru <- muhe - izstop.x - izstop.y - izstop.xy
+  izstopX <- muhe * premikX * (1 - premikY)
+  izstopY <- muhe * (1 - premikX) * premikY
+  izstopXY <- muhe * premikX * premikY
+  priMiru <- muhe - izstopX - izstopY - izstopXY
   
-  preseljene.muhe <-
-    pri.miru +
-    levo(izstop.x * (veter.x > 0)) +
-    desno(izstop.y * (veter.x < 0)) +
-    spodaj(izstop.y * (veter.y > 0)) +
-    zgoraj(izstop.y * (veter.y < 0)) +
-    levo(spodaj(izstop.xy * (veter.x > 0 && veter.y > 0))) +
-    desno(spodaj(izstop.xy * (veter.x < 0 && veter.y > 0))) +
-    levo(zgoraj(izstop.xy * (veter.x > 0 && veter.y < 0))) +
-    desno(zgoraj(izstop.xy * (veter.x < 0 && veter.y < 0)))
+  preseljeneMuhe <-
+    priMiru +
+    levo(izstopX * (veterX > 0)) +
+    desno(izstopY * (veterX < 0)) +
+    spodaj(izstopY * (veterY > 0)) +
+    zgoraj(izstopY * (veterY < 0)) +
+    levo(spodaj(izstopXY * (veterX > 0 && veterY > 0))) +
+    desno(spodaj(izstopXY * (veterX < 0 && veterY > 0))) +
+    levo(zgoraj(izstopXY * (veterX > 0 && veterY < 0))) +
+    desno(zgoraj(izstopXY * (veterX < 0 && veterY < 0)))
   
-  return(round(preseljene.muhe))
+  return(round(preseljeneMuhe))
 }
 
-simuliraj.dan <-
+simulirajKorak <-
   function(dan,
            stanje,
-           vreme, parametri) {
-    govedo <- stanje$zdrava.goveda + stanje$okuzena.goveda
-    drobnica <- stanje$zdrava.drobnica + stanje$okuzena.drobnica
+           vreme, parametri, natancnost) {
+    govedo <- stanje$zdravoGovedo + stanje$okuzenoGovedo
+    drobnica <- stanje$zdravaDrobnica + stanje$okuzenaDrobnica
     
     # Število pikov
-    stopnja.ugrizov <- parametri$stopnja.ugrizov / natancnost
+    stopnjaUgrizov <- parametri$stopnjaUgrizov / natancnost
     nagnjenost <-
-      parametri$stevilo.muh.na.drobnico / parametri$stevilo.muh.na.govedo
-    stevilo.pikov.govedo <-
-      stopnja.ugrizov * stanje$okuzene.muhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-    stevilo.pikov.govedo[govedo + drobnica == 0] <- 0
-    stevilo.pikov.drobnica <-
-      stopnja.ugrizov * stanje$okuzene.muhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
-    stevilo.pikov.drobnica[govedo + drobnica == 0] <- 0
-    novo.okuzena.goveda <-
-      round(stanje$zdrava.goveda * (
-        1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.govedo
+      parametri$steviloMuhNaDrobnico / parametri$steviloMuhNaGovedo
+    steviloPikovGovedo <-
+      stopnjaUgrizov * stanje$okuzeneMuhe * (nagnjenost / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+    steviloPikovGovedo[govedo + drobnica == 0] <- 0
+    steviloPikovDrobnica <-
+      stopnjaUgrizov * stanje$okuzeneMuhe * (1 / (nagnjenost + 1)) * (1 / (govedo + drobnica))
+    steviloPikovDrobnica[govedo + drobnica == 0] <- 0
+    novoOkuzenoGovedo <-
+      round(stanje$zdravoGovedo * (
+        1 - (1 - parametri$prenosVektorNaGostitelj) ^ steviloPikovGovedo
       ))
-    novo.okuzena.drobnica <-
-      round(stanje$zdrava.drobnica * (
-        1 - (1 - parametri$prenos.vektor.na.gostitelj) ^ stevilo.pikov.drobnica
+    novoOkuzenaDrobnica <-
+      round(stanje$zdravaDrobnica * (
+        1 - (1 - parametri$prenosVektorNaGostitelj) ^ steviloPikovDrobnica
       ))
     
     # Okužbe goveda
-    stanje$zdrava.goveda <-
-      stanje$zdrava.goveda - novo.okuzena.goveda
-    stanje$okuzena.goveda <-
-      stanje$okuzena.goveda + novo.okuzena.goveda
-    stanje$zdrava.drobnica <-
-      stanje$zdrava.drobnica - novo.okuzena.drobnica
-    stanje$okuzena.drobnica <-
-      stanje$okuzena.drobnica + novo.okuzena.drobnica
+    stanje$zdravoGovedo <-
+      stanje$zdravoGovedo - novoOkuzenoGovedo
+    stanje$okuzenoGovedo <-
+      stanje$okuzenoGovedo + novoOkuzenoGovedo
+    stanje$zdravaDrobnica <-
+      stanje$zdravaDrobnica - novoOkuzenaDrobnica
+    stanje$okuzenaDrobnica <-
+      stanje$okuzenaDrobnica + novoOkuzenaDrobnica
     
     # Okužbe muh
-    novo.okuzene.muhe <-
+    novoOkuzeneMuhe <-
       round(
-        stanje$zdrave.muhe * parametri$prenos.gostitelj.na.vektor * stopnja.ugrizov * (stanje$okuzena.drobnica + stanje$okuzena.goveda) / (govedo + drobnica)
+        stanje$zdraveMuhe * parametri$prenosGostiteljNaVektor * stopnjaUgrizov * (stanje$okuzenaDrobnica + stanje$okuzenoGovedo) / (govedo + drobnica)
       )
-    novo.okuzene.muhe[govedo + drobnica == 0] <- 0
-    stanje$zdrave.muhe <- stanje$zdrave.muhe - novo.okuzene.muhe
-    stanje$okuzene.muhe <- stanje$okuzene.muhe + novo.okuzene.muhe
+    novoOkuzeneMuhe[govedo + drobnica == 0] <- 0
+    stanje$zdraveMuhe <- stanje$zdraveMuhe - novoOkuzeneMuhe
+    stanje$okuzeneMuhe <- stanje$okuzeneMuhe + novoOkuzeneMuhe
     
     # Nataliteta muh
-    nataliteta.muh <-
-      ((1 + parametri$nataliteta.muh) ^ (1 / natancnost) - 1)
+    natalitetaMuh <-
+      ((1 + parametri$natalitetaMuh) ^ (1 / natancnost) - 1)
     gamma <-
-      nataliteta.muh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalni.cas.okuzbe * 2 * pi)
-    stanje$zdrave.muhe <-
-      round(stanje$zdrave.muhe + gamma * stanje$zdrave.muhe)
-    stanje$okuzene.muhe <-
-      round(stanje$okuzene.muhe + gamma * stanje$okuzene.muhe)
+      natalitetaMuh * vreme$temperatura * (vreme$temperatura - 10.4) * sin(dan / parametri$opazovalniCasOkuzbe * 2 * pi)
+    stanje$zdraveMuhe <-
+      round(stanje$zdraveMuhe + gamma * stanje$zdraveMuhe)
+    stanje$okuzeneMuhe <-
+      round(stanje$okuzeneMuhe + gamma * stanje$okuzeneMuhe)
     
     # Preseljevanje muh
     dt <- 24 / natancnost
-    stanje$zdrave.muhe <-
-      preseli.muhe(stanje$zdrave.muhe,
-                   vreme$veter.x,
-                   vreme$veter.y,
-                   dt, parametri$trenje)
-    stanje$okuzene.muhe <-
-      preseli.muhe(stanje$okuzene.muhe,
-                   vreme$veter.x,
-                   vreme$veter.y,
-                   dt, parametri$trenje)
-    stanje$zdrave.muhe <- stanje$zdrave.muhe * matrikaNicel
-    stanje$okuzene.muhe <- stanje$okuzene.muhe * matrikaNicel
+    stanje$zdraveMuhe <-
+      preseliMuhe(stanje$zdraveMuhe,
+                  vreme$veterX,
+                  vreme$veterY,
+                  dt,
+                  parametri$trenje)
+    stanje$okuzeneMuhe <-
+      preseliMuhe(stanje$okuzeneMuhe,
+                  vreme$veterX,
+                  vreme$veterY,
+                  dt,
+                  parametri$trenje)
+    stanje$zdraveMuhe <- stanje$zdraveMuhe * neprimernaObmocja
+    stanje$okuzeneMuhe <- stanje$okuzeneMuhe * neprimernaObmocja
     return(stanje)
   }
 
@@ -119,54 +121,56 @@ simuliraj <-
     stanje <- list()
     
     # Začetno število zdravega in okuženega goveda
-    stanje$zdrava.goveda =
+    stanje$zdravoGovedo =
       govedo
-    stanje$zdrava.drobnica =
+    stanje$zdravaDrobnica =
       drobnica
-    stanje$okuzena.drobnica =
-      0 * stanje$zdrava.drobnica
-    stanje$okuzena.goveda <-
-      0 * stanje$zdrava.goveda
-    for (kraj in strsplit(parametri$kraji.okuzbe, ",")[[1]]) {
+    stanje$okuzenaDrobnica =
+      0 * stanje$zdravaDrobnica
+    stanje$okuzenoGovedo <-
+      0 * stanje$zdravoGovedo
+    for (kraj in strsplit(parametri$krajiOkuzbe, ",")[[1]]) {
       kraj <- trim(kraj)
       if (kraj != "")
-        stanje$okuzena.goveda[indeks.kraja(kraj)] <-
-          parametri$zacetno.stevilo.okuzenih
+        stanje$okuzenoGovedo[indeksKraja(kraj)] <-
+          parametri$zacetnoSteviloOkuzenih
     }
     
     # Začetno število zdravih in okuženih muh
-    stanje$zdrave.muhe <-
-      stanje$zdrava.goveda * parametri$stevilo.muh.na.govedo + stanje$zdrava.drobnica * parametri$stevilo.muh.na.drobnico
-    stanje$okuzene.muhe <-
-      stanje$okuzena.goveda * parametri$stevilo.muh.na.govedo + stanje$okuzena.drobnica * parametri$stevilo.muh.na.drobnico
+    stanje$zdraveMuhe <-
+      stanje$zdravoGovedo * parametri$steviloMuhNaGovedo + stanje$zdravaDrobnica * parametri$steviloMuhNaDrobnico
+    stanje$okuzeneMuhe <-
+      stanje$okuzenoGovedo * parametri$steviloMuhNaGovedo + stanje$okuzenaDrobnica * parametri$steviloMuhNaDrobnico
     
     # Seznam stanj za vsak dan
-    zgodovina <- as.list(1:(parametri$opazovalni.cas.okuzbe + 1))
+    zgodovina <- as.list(1:(parametri$opazovalniCasOkuzbe + 1))
     zgodovina[[1]] <- stanje
-    for (dan in 1:parametri$opazovalni.cas.okuzbe) {
-      veter.x <- zonalniVeter[, , dan]
-      veter.y <- meridionalniVeter[, , dan]
-      natancnost <- ceiling(24 * parametri$trenje * max(veter.x ^ 2 + veter.y ^ 2) ^ 0.5)
+    for (dan in 1:parametri$opazovalniCasOkuzbe) {
+      veterX <- vreme$zonalniVeter[, , dan]
+      veterY <- vreme$meridionalniVeter[, , dan]
+      natancnost <-
+        max(ceiling(24 * parametri$trenje * max(veterX ^ 2 + veterY ^ 2) ^ 0.5), 1)
       for (korak in 1:natancnost) {
         stanje <-
-          simuliraj.dan(
+          simulirajKorak(
             dan,
             stanje,
             list(
-              veter.x = veter.x,
-              veter.y = veter.y,
-              temperatura = temperatura[, , dan]
+              veterX = veterX,
+              veterY = veterY,
+              temperatura = vreme$temperatura[, , dan]
             ),
-            parametri
+            parametri,
+            natancnost
           )
         text <-
-          paste0("Dan ", dan, " / ", parametri$opazovalni.cas.okuzbe)
+          paste0("Dan ", dan, " / ", parametri$opazovalniCasOkuzbe)
         detail <- paste0("", round(100 * korak / natancnost), "%")
         if (is.function(updateProgress)) {
           updateProgress(
             detail = detail,
             message = text,
-            value = ((dan - 1) * natancnost + korak) / (parametri$opazovalni.cas.okuzbe * natancnost)
+            value = ((dan - 1) * natancnost + korak) / (parametri$opazovalniCasOkuzbe * natancnost)
           )
         } else {
           if (korak == 1)
@@ -179,6 +183,6 @@ simuliraj <-
       zgodovina[[dan + 1]] <- stanje
     }
     save(zgodovina,
-         file = file.path("izhodni-podatki", parametri$ime.datoteke))
-    return(parametri$ime.datoteke)
+         file = file.path(mapaIzhodnihPodatkov, parametri$imeIzhodneDatoteke))
+    return(parametri$imeIzhodneDatoteke)
   }

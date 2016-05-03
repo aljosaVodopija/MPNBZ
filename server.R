@@ -11,9 +11,10 @@ function(input, output, session) {
   
   # Rezultati simulacije
   podatki <- reactive({
-    req(input$ime.datoteke)
+    req(input$imeVhodneDatoteke)
     env <- new.env()
-    load(file.path("izhodni-podatki", input$ime.datoteke), envir = env)
+    load(file.path(mapaIzhodnihPodatkov, input$imeVhodneDatoteke),
+         envir = env)
     updateSliderInput(session,
                       "dan",
                       max = length(env$zgodovina) - 1)
@@ -21,21 +22,21 @@ function(input, output, session) {
   })
   
   simuli <- observe({
-    if (input$pozeni.simulacijo == 0)
+    if (input$pozeniSimulacijo == 0)
       return ()
     parametri <- isolate(
       list(
-        kraji.okuzbe = input$kraji.okuzbe,
-        zacetno.stevilo.okuzenih = input$zacetno.stevilo.okuzenih,
-        stevilo.muh.na.govedo = input$stevilo.muh.na.govedo,
-        stevilo.muh.na.drobnico = input$stevilo.muh.na.drobnico,
-        nataliteta.muh = input$nataliteta.muh / 100,
-        prenos.gostitelj.na.vektor = input$prenos.gostitelj.na.vektor / 100,
-        stopnja.ugrizov = input$stopnja.ugrizov / 100,
-        prenos.vektor.na.gostitelj = input$prenos.vektor.na.gostitelj / 100,
+        krajiOkuzbe = input$krajiOkuzbe,
+        zacetnoSteviloOkuzenih = input$zacetnoSteviloOkuzenih,
+        steviloMuhNaGovedo = input$steviloMuhNaGovedo,
+        steviloMuhNaDrobnico = input$steviloMuhNaDrobnico,
+        natalitetaMuh = input$natalitetaMuh / 100,
+        prenosGostiteljNaVektor = input$prenosGostiteljNaVektor / 100,
+        stopnjaUgrizov = input$stopnjaUgrizov / 100,
+        prenosVektorNaGostitelj = input$prenosVektorNaGostitelj / 100,
         trenje = input$trenje,
-        opazovalni.cas.okuzbe = input$opazovalni.cas.okuzbe,
-        ime.datoteke = input$ime.shrani
+        opazovalniCasOkuzbe = input$opazovalniCasOkuzbe,
+        imeIzhodneDatoteke = input$imeIzhodneDatoteke
       )
     )
     progress <- shiny::Progress$new()
@@ -53,10 +54,10 @@ function(input, output, session) {
     on.exit(progress$close())
     ime <- simuliraj(parametri, updateProgress)
     datoteke <-
-      c("Izberite model..." = "", dir(path = "izhodni-podatki"))
+      c("Izberite model..." = "", dir(path = mapaIzhodnihPodatkov))
     updateSelectInput(
       session,
-      inputId = "ime.datoteke",
+      inputId = "imeVhodneDatoteke",
       choices = datoteke,
       selected = ime
     )
@@ -64,26 +65,26 @@ function(input, output, session) {
   })
   
   # Podatki dneva
-  podatki.dneva <- reactive({
+  podatkiDneva <- reactive({
     podatki()[[min(input$dan + 1, length(podatki()))]]
   })
   
   # Barvna paleta
-  paleta.okuzena.goveda <- reactive({
+  paletaOkuzenoGovedo <- reactive({
     colorNumeric(colorRamp(c("#fee0d2", "#de2d26")),
-                 razpon(podatki(), "okuzena.goveda"),
+                 razpon(podatki(), "okuzenoGovedo"),
                  na.color = "#00000000")
   })
   
-  paleta.zdrava.goveda <- reactive({
+  paletaZdravoGovedo <- reactive({
     colorNumeric(colorRamp(c("#e5f5e0", "#31a354")),
-                 razpon(podatki(), "zdrava.goveda"),
+                 razpon(podatki(), "zdravoGovedo"),
                  na.color = "#00000000")
   })
   
-  paleta.okuzenih.muh <- reactive({
+  paletaOkuzenihMuh <- reactive({
     colorNumeric(colorRamp(c("#deebf7", "#3182bd")),
-                 razpon(podatki(), "okuzene.muhe"),
+                 razpon(podatki(), "okuzeneMuhe"),
                  na.color = "#00000000")
   })
   
@@ -92,59 +93,59 @@ function(input, output, session) {
     leaflet() %>%
       addTiles() %>%
       fitBounds(
-        lng1 = x.lim[1],
-        lat1 = y.lim[1],
-        lng2 = x.lim[2],
-        lat2 = y.lim[2]
+        lng1 = lonRange$min,
+        lat1 = latRange$min,
+        lng2 = lonRange$max,
+        lat2 = latRange$max
       )
   })
   
   # Raster
   observe({
-    okuzene.muhe <- podatki.dneva()$okuzene.muhe
-    okuzene.muhe[okuzene.muhe == 0] <- NA
-    okuzena.goveda <- podatki.dneva()$okuzena.goveda
-    okuzena.goveda[okuzena.goveda == 0] <- NA
-    zdrava.goveda <- podatki.dneva()$zdrava.goveda
-    zdrava.goveda[zdrava.goveda == 0] <- NA
+    okuzeneMuhe <- podatkiDneva()$okuzeneMuhe
+    okuzeneMuhe[okuzeneMuhe == 0] <- NA
+    okuzenoGovedo <- podatkiDneva()$okuzenoGovedo
+    okuzenoGovedo[okuzenoGovedo == 0] <- NA
+    zdravoGovedo <- podatkiDneva()$zdravoGovedo
+    zdravoGovedo[zdravoGovedo == 0] <- NA
     leafletProxy("map") %>%
       clearGroup("raster") %>%
       addRasterImage(
         raster(
-          okuzene.muhe,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
+          okuzeneMuhe,
+          xmn = lonRange$min,
+          xmx = lonRange$max,
+          ymn = latRange$min,
+          ymx = latRange$max,
           crs = "+init=epsg:4326"
         ),
-        colors = paleta.okuzenih.muh(),
+        colors = paletaOkuzenihMuh(),
         opacity = 0.9,
         group = "raster"
       ) %>%
       addRasterImage(
         raster(
-          zdrava.goveda,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
+          zdravoGovedo,
+          xmn = lonRange$min,
+          xmx = lonRange$max,
+          ymn = latRange$min,
+          ymx = latRange$max,
           crs = "+init=epsg:4326"
         ),
-        colors = paleta.zdrava.goveda(),
+        colors = paletaZdravoGovedo(),
         opacity = 0.9,
         group = "raster"
       ) %>%
       addRasterImage(
         raster(
-          okuzena.goveda,
-          xmn = x.lim[1],
-          xmx = x.lim[2],
-          ymn = y.lim[1],
-          ymx = y.lim[2],
+          okuzenoGovedo,
+          xmn = lonRange$min,
+          xmx = lonRange$max,
+          ymn = latRange$min,
+          ymx = latRange$max,
           crs = "+init=epsg:4326"
         ),
-        colors = paleta.okuzena.goveda(),
+        colors = paletaOkuzenoGovedo(),
         opacity = 0.9,
         group = "raster"
       )
@@ -156,20 +157,20 @@ function(input, output, session) {
       clearControls() %>%
       addLegend(
         position = "bottomleft",
-        pal = paleta.okuzenih.muh(),
-        values = razpon(podatki(), "okuzene.muhe"),
+        pal = paletaOkuzenihMuh(),
+        values = razpon(podatki(), "okuzeneMuhe"),
         title = "Okužene muhe"
       ) %>%
       addLegend(
         position = "bottomright",
-        pal = paleta.okuzena.goveda(),
-        values = razpon(podatki(), "okuzena.goveda"),
+        pal = paletaOkuzenoGovedo(),
+        values = razpon(podatki(), "okuzenoGovedo"),
         title = "Okuženo govedo"
       ) %>%
       addLegend(
         position = "bottomright",
-        pal = paleta.zdrava.goveda(),
-        values = razpon(podatki(), "zdrava.goveda"),
+        pal = paletaZdravoGovedo(),
+        values = razpon(podatki(), "zdravoGovedo"),
         title = "Zdravo govedo"
       )
   })

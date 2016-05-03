@@ -14,26 +14,26 @@ bootstrapPage(
           column(
             4,
             sliderInput(
-              inputId = "opazovalni.cas.okuzbe",
+              inputId = "opazovalniCasOkuzbe",
               label = "Opazovalni čas okužbe",
               min = 1,
               max = 31,
               value = 10
             ),
             textInput(
-              inputId = "ime.shrani",
-              label = "Ime datoteke",
+              inputId = "imeIzhodneDatoteke",
+              label = "Ime izhodne datoteke",
               value = format(Sys.time(), "Simulacija (%Y-%m-%d %H:%M).RData")
             ),
             hr(),
             h4("Začetna okužba"),
             textInput(
-              inputId = "kraji.okuzbe",
+              inputId = "krajiOkuzbe",
               label = "Kraj okužbe",
               value = "Grosuplje, Ptuj"
             ),
             sliderInput(
-              inputId = "zacetno.stevilo.okuzenih",
+              inputId = "zacetnoSteviloOkuzenih",
               label = "Začetno število okuženih živali",
               min = 0,
               max = 1000,
@@ -44,7 +44,7 @@ bootstrapPage(
             4,
             h4("Verjetnosti prenosa okužbe"),
             sliderInput(
-              inputId = "stopnja.ugrizov",
+              inputId = "stopnjaUgrizov",
               label = "Stopnja ugrizov",
               min = 0,
               max = 100,
@@ -53,7 +53,7 @@ bootstrapPage(
               post = "%"
             ),
             sliderInput(
-              inputId = "prenos.gostitelj.na.vektor",
+              inputId = "prenosGostiteljNaVektor",
               label = "Verjetnost prenosa z gostitelja na vektor",
               min = 0,
               max = 15,
@@ -62,7 +62,7 @@ bootstrapPage(
               post = "%"
             ),
             sliderInput(
-              inputId = "prenos.vektor.na.gostitelj",
+              inputId = "prenosVektorNaGostitelj",
               label = "Verjetnost prenosa z vektorja na gostitelj",
               min = 0,
               max = 100,
@@ -83,21 +83,21 @@ bootstrapPage(
             4,
             h4("Populacija muh"),
             sliderInput(
-              inputId = "stevilo.muh.na.govedo",
+              inputId = "steviloMuhNaGovedo",
               label = "Število muh na glavo goveda",
               min = 0,
               max = 5000,
               value = 900
             ),
             sliderInput(
-              inputId = "stevilo.muh.na.drobnico",
+              inputId = "steviloMuhNaDrobnico",
               label = "Število muh na glavo drobnice",
               min = 0,
               max = 500,
               value = 100
             ),
             sliderInput(
-              inputId = "nataliteta.muh",
+              inputId = "natalitetaMuh",
               label = "Največja dnevna nataliteta muh",
               min = 0,
               max = 1,
@@ -110,7 +110,7 @@ bootstrapPage(
         hr(),
         fixedRow(column(
           12,
-          actionButton(inputId = "pozeni.simulacijo",
+          actionButton(inputId = "pozeniSimulacijo",
                        label = "Poženi simulacijo")
         ))
       )
@@ -127,12 +127,12 @@ bootstrapPage(
         ),
         absolutePanel(
           selectInput(
-            inputId = "ime.datoteke",
+            inputId = "imeVhodneDatoteke",
             label = "Datoteka s simulacijo",
-            choices = c("Izberite model..." = "", dir(path = "izhodni-podatki"))
+            choices = c("Izberite model..." = "", dir(path = mapaIzhodnihPodatkov))
           ),
           conditionalPanel(
-            "input['ime.datoteke'] != ''",
+            "input['imeVhodneDatoteke'] != ''",
             sliderInput(
               inputId = "dan",
               label = "Dan",
