@@ -8,6 +8,9 @@ steviloStolpcev <- round((lonRange$max - lonRange$min) / dx) + 1
 dimenzije <- c(steviloVrstic, steviloStolpcev)
 mapaIzhodnihPodatkov <- "izhodni-podatki"
 
+if (!dir.exists(mapaIzhodnihPodatkov))
+  dir.create(mapaIzhodnihPodatkov)
+
 indeksKraja <- function(mesto) {
   kode = read.csv("vmesni-podatki/koordinateKrajev.csv", row.names = 1)
   mesto = toupper(mesto)
