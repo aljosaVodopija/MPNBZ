@@ -1,5 +1,5 @@
 # Po potrebi je treba namestiti pakete s spodnjim ukazom:
-# install.packages(c("shiny", "leaflet", "raster"))
+# install.packages(c("shiny", "leaflet", "raster", "rgdal"))
 
 # Naložimo knjižnice za delo z zemljevidi
 library(shiny)
