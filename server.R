@@ -1,12 +1,9 @@
 function(input, output, session) {
   razpon <- function(razpredelnice, stolpec) {
-    mini <-
-      min(sapply(razpredelnice, function(dan)
-        min(dan[[stolpec]])))
     maksi <-
       max(sapply(razpredelnice, function(dan)
         max(dan[[stolpec]])))
-    return(c(mini, maksi))
+    return(maksi)
   }
   
   # Rezultati simulacije
@@ -70,21 +67,21 @@ function(input, output, session) {
   })
   
   # Barvna paleta
-  paletaOkuzenoGovedo <- reactive({
+  paletaOkuzeneZivali <- reactive({
     colorNumeric(colorRamp(c("#fee0d2", "#de2d26")),
-                 razpon(podatki(), "okuzenoGovedo"),
+                 c(0, razpon(podatki(), "okuzenoGovedo") + razpon(podatki(), "okuzenaDrobnica")),
                  na.color = "#00000000")
   })
   
-  paletaZdravoGovedo <- reactive({
+  paletaZdraveZivali <- reactive({
     colorNumeric(colorRamp(c("#e5f5e0", "#31a354")),
-                 razpon(podatki(), "zdravoGovedo"),
+                 c(0, razpon(podatki(), "zdravoGovedo") + razpon(podatki(), "zdravaDrobnica")),
                  na.color = "#00000000")
   })
   
   paletaOkuzenihMuh <- reactive({
     colorNumeric(colorRamp(c("#deebf7", "#3182bd")),
-                 razpon(podatki(), "okuzeneMuhe"),
+                 c(0, razpon(podatki(), "okuzeneMuhe")),
                  na.color = "#00000000")
   })
   
@@ -104,10 +101,10 @@ function(input, output, session) {
   observe({
     okuzeneMuhe <- podatkiDneva()$okuzeneMuhe
     okuzeneMuhe[okuzeneMuhe == 0] <- NA
-    okuzenoGovedo <- podatkiDneva()$okuzenoGovedo
-    okuzenoGovedo[okuzenoGovedo == 0] <- NA
-    zdravoGovedo <- podatkiDneva()$zdravoGovedo
-    zdravoGovedo[zdravoGovedo == 0] <- NA
+    okuzeneZivali <- podatkiDneva()$okuzenoGovedo + podatkiDneva()$okuzenaDrobnica
+    okuzeneZivali[okuzeneZivali == 0] <- NA
+    zdraveZivali <- podatkiDneva()$zdravoGovedo + podatkiDneva()$zdravaDrobnica
+    zdraveZivali[zdraveZivali == 0] <- NA
     leafletProxy("map") %>%
       clearGroup("raster") %>%
       addRasterImage(
@@ -125,27 +122,27 @@ function(input, output, session) {
       ) %>%
       addRasterImage(
         raster(
-          zdravoGovedo,
+          zdraveZivali,
           xmn = lonRange$min,
           xmx = lonRange$max,
           ymn = latRange$min,
           ymx = latRange$max,
           crs = "+init=epsg:4326"
         ),
-        colors = paletaZdravoGovedo(),
+        colors = paletaZdraveZivali(),
         opacity = 0.9,
         group = "raster"
       ) %>%
       addRasterImage(
         raster(
-          okuzenoGovedo,
+          okuzeneZivali,
           xmn = lonRange$min,
           xmx = lonRange$max,
           ymn = latRange$min,
           ymx = latRange$max,
           crs = "+init=epsg:4326"
         ),
-        colors = paletaOkuzenoGovedo(),
+        colors = paletaOkuzeneZivali(),
         opacity = 0.9,
         group = "raster"
       )
@@ -158,20 +155,20 @@ function(input, output, session) {
       addLegend(
         position = "bottomleft",
         pal = paletaOkuzenihMuh(),
-        values = razpon(podatki(), "okuzeneMuhe"),
+        values = c(0, razpon(podatki(), "okuzeneMuhe")),
         title = "Okužene muhe"
       ) %>%
       addLegend(
         position = "bottomright",
-        pal = paletaOkuzenoGovedo(),
-        values = razpon(podatki(), "okuzenoGovedo"),
-        title = "Okuženo govedo"
+        pal = paletaOkuzeneZivali(),
+        values = c(0, razpon(podatki(), "okuzenoGovedo") + razpon(podatki(), "okuzenaDrobnica")),
+        title = "Okužene živali"
       ) %>%
       addLegend(
         position = "bottomright",
-        pal = paletaZdravoGovedo(),
-        values = razpon(podatki(), "zdravoGovedo"),
-        title = "Zdravo govedo"
+        pal = paletaZdraveZivali(),
+        values = c(0, razpon(podatki(), "zdravoGovedo") + razpon(podatki(), "zdravaDrobnica")),
+        title = "Zdrave živali"
       )
   })
 }
