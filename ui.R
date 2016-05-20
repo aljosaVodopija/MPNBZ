@@ -23,7 +23,7 @@ bootstrapPage(
             textInput(
               inputId = "imeIzhodneDatoteke",
               label = "Ime izhodne datoteke",
-              value = format(Sys.time(), "Simulacija (%Y-%m-%d %H:%M).RData")
+              value = format(Sys.time(), "Simulacija-%Y-%m-%d-%H-%M.RData")
             ),
             hr(),
             h4("Začetna okužba"),
