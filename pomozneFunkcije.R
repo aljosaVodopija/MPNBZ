@@ -13,11 +13,11 @@ if (!dir.exists(mapaIzhodnihPodatkov))
 
 indeksKraja <- function(mesto) {
   kode = read.csv("vmesni-podatki/koordinateKrajev.csv", row.names = 1)
-  mesto = toupper(mesto)
+  mesto = toupper(stringi::stri_trans_general(mesto,"latin-ascii"))
   if (!mesto %in% rownames(kode)) {
     kode[mesto,] = geocode(paste(mesto, "SLOVENIJA"))
+    write.csv(kode, "vmesni-podatki/koordinateKrajev.csv")
   }
-  write.csv(kode, "vmesni-podatki/koordinateKrajev.csv")
   koordinate <- kode[mesto,]
   stolpec <- round((koordinate$lon - lonRange$min) / dx + 1 / 2)
   vrstica <- round((latRange$max - koordinate$lat) / dy + 1 / 2)

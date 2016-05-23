@@ -130,7 +130,7 @@ simuliraj <-
     stanje$okuzenoGovedo <-
       0 * stanje$zdravoGovedo
     for (kraj in strsplit(parametri$krajiOkuzbe, ",")[[1]]) {
-      kraj <- trim(kraj)
+      kraj <- gsub("^\\s+|\\s+$", "", kraj)
       if (kraj != "")
         stanje$okuzenoGovedo[indeksKraja(kraj)] <-
           parametri$zacetnoSteviloOkuzenih
